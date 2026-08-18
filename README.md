@@ -49,7 +49,8 @@ The `CoAArena/` folder and `CoAArena.toc` must share that exact name (a WoW
 requirement); everything else is lowercase `snake_case`. Folders are optional
 to WoW (files load only via the `.toc`) — the layout is for humans.
 
-Conventions and git-flow notes live in [CLAUDE.md](CLAUDE.md).
+Repository conventions are enforced by `.editorconfig`, `.luacheckrc`, and the
+quality workflow.
 
 ### Quality checks
 
