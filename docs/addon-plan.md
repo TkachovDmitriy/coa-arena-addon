@@ -114,3 +114,6 @@ sharing/comparison, not just personal in-game history:
   remains the release gate.
 - 2026-08-18: added a non-persistent battleground test mode for characters
   that cannot yet queue for arenas.
+- 2026-08-18: validated the BG test lifecycle and hostile-player capture live
+  on CoA through Lutris/Wine; 29 opponents were observed and arena history
+  remained empty. Real arena validation is still required.

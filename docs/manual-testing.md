@@ -54,3 +54,11 @@ history or SavedVariables.
 BG testing does not validate arena instance detection, arena-specific team and
 rating APIs, or CoA's arena event order. Complete the arena checklist above
 before release.
+
+### Live validation log
+
+- 2026-08-18 — CoA client launched through Lutris/Wine: BG test capture moved
+  through `preparing(bg-test)`, `active(bg-test)`, `complete(bg-test)`, and
+  back to `idle`. The final debug state reported 29 test opponents while
+  `matches=0` and `latest=#0`, confirming that capture worked without writing
+  BG data to arena history. Arena-specific validation remains outstanding.
