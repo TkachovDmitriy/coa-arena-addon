@@ -5,6 +5,8 @@ local event_script
 local messages = {}
 local instance_type = "none"
 local winner_team
+local battlefield_runtime = 90000
+local target_guid = "enemy-guid"
 local create_frame_count = 0
 
 local event_frame = {}
@@ -101,6 +103,11 @@ function UnitName()
    return "Player"
 end
 
+function UnitGUID(unit)
+   if unit == "player" then return "player-guid" end
+   if unit == "target" then return target_guid end
+end
+
 local scores = {
    { "Player", 1, 0, 0, 0, 0, 0, "Human", "Warrior", "WARRIOR", 1000, 50 },
    { "Enemy", 2, 0, 1, 0, 1, 0, "Orc", "Shaman", "SHAMAN", 800, 200 },
@@ -124,7 +131,7 @@ function GetBattlefieldTeamInfo(team)
 end
 
 function GetBattlefieldInstanceRunTime()
-   return 90000
+   return battlefield_runtime
 end
 
 function time()
@@ -193,7 +200,7 @@ event_script(
    event_frame,
    "COMBAT_LOG_EVENT_UNFILTERED",
    0,
-   "SPELL_DAMAGE",
+   "SPELL_CAST_SUCCESS",
    "enemy-guid",
    "Enemy",
    3,
@@ -204,6 +211,12 @@ event_script(
    "Razorice"
 )
 assert(session:GetDebugState() == "active")
+assert(string.find(
+   namespace.util.GetLogText(),
+   "COMBAT||event=SPELL_CAST_SUCCESS||source=Enemy||dest=Player||spell-id=50401||spell=Razorice",
+   1,
+   true
+))
 
 winner_team = 0
 event_script(event_frame, "UPDATE_BATTLEFIELD_SCORE")
@@ -237,7 +250,7 @@ event_script(
    event_frame,
    "COMBAT_LOG_EVENT_UNFILTERED",
    0,
-   "SPELL_DAMAGE",
+   "SPELL_CAST_SUCCESS",
    "second-enemy-guid",
    "SecondEnemy",
    3,
@@ -263,6 +276,60 @@ SlashCmdList.TDARENALENS("testbg on")
 assert(session:GetDebugState() == "preparing(bg-test)")
 assert(registered_events.COMBAT_LOG_EVENT_UNFILTERED)
 
+battlefield_runtime = 0
+event_script(
+   event_frame,
+   "COMBAT_LOG_EVENT_UNFILTERED",
+   0,
+   "SPELL_AURA_APPLIED",
+   "waiting-enemy-guid",
+   "WaitingEnemy",
+   3,
+   "waiting-enemy-guid",
+   "WaitingEnemy",
+   3,
+   12345,
+   "Preparation Buff"
+)
+assert(session:GetDebugState() == "preparing(bg-test)")
+assert(session:GetTestOpponentCount() == 0)
+assert(not string.find(namespace.util.GetLogText(), "WaitingEnemy", 1, true))
+
+battlefield_runtime = 90000
+target_guid = "bg-enemy-guid"
+event_script(
+   event_frame,
+   "COMBAT_LOG_EVENT_UNFILTERED",
+   0,
+   "SPELL_CAST_SUCCESS",
+   "bg-enemy-guid",
+   "BattlegroundEnemy",
+   3,
+   "player-guid",
+   "Player",
+   1
+)
+assert(session:GetDebugState() == "active(bg-test)")
+assert(string.find(
+   namespace.util.GetLogText(),
+   "COMBAT||event=SPELL_CAST_SUCCESS||source=BattlegroundEnemy||dest=Player",
+   1,
+   true
+))
+local log_lines_before_duplicate = namespace.util.GetLogLineCount()
+event_script(
+   event_frame,
+   "COMBAT_LOG_EVENT_UNFILTERED",
+   0,
+   "SPELL_CAST_SUCCESS",
+   "bg-enemy-guid",
+   "BattlegroundEnemy",
+   3,
+   "player-guid",
+   "Player",
+   1
+)
+assert(namespace.util.GetLogLineCount() == log_lines_before_duplicate)
 event_script(
    event_frame,
    "COMBAT_LOG_EVENT_UNFILTERED",
@@ -273,9 +340,11 @@ event_script(
    3,
    "player-guid",
    "Player",
-   1
+   1,
+   99999,
+   "Spam Damage"
 )
-assert(session:GetDebugState() == "active(bg-test)")
+assert(not string.find(namespace.util.GetLogText(), "Spam Damage", 1, true))
 SlashCmdList.TDARENALENS("debug")
 assert(string.find(messages[#messages], "test%-opponents=1"))
 

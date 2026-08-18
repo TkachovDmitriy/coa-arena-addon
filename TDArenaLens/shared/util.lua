@@ -5,7 +5,10 @@ local ADDON_NAME, ns = ...
 local util = {}
 ns.util = util
 
-local MAX_LOG_LINES = 200
+-- Combat diagnostics can produce many lines during a single fight. Keep a
+-- bounded runtime buffer large enough to copy a useful slice without growing
+-- SavedVariables (this buffer is never persisted).
+local MAX_LOG_LINES = 500
 local log_lines = {}
 local log_listener
 
@@ -21,6 +24,11 @@ end
 function util.Print(msg)
    append_log(msg)
    DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99TD ArenaLens|r: " .. tostring(msg))
+end
+
+-- Add a copyable diagnostic line without flooding the player's chat frame.
+function util.Log(msg)
+   append_log(msg)
 end
 
 function util.GetLogText()

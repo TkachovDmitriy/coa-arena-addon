@@ -93,6 +93,14 @@ function ArenaSession:OnCombatObserved()
    self.first_combat_at = time()
 end
 
+-- CoA emits combat-log traffic for hostile players while the battleground
+-- gates are still closed (buffs during the preparation countdown). The BG
+-- runtime remains zero until the match actually starts, so ignore that noise.
+function ArenaSession:IsCombatCaptureOpen()
+   if self.session_kind ~= "bg_test" then return true end
+   return (GetBattlefieldInstanceRunTime() or 0) > 0
+end
+
 function ArenaSession:GetPlayerScore()
    local player_name = base_name(UnitName("player"))
    for index = 1, GetNumBattlefieldScores() do
