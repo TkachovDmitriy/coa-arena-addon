@@ -33,7 +33,8 @@ Implemented modules:
 - `reporting.lua`: shared debug, BG export, and latest-arena report generation.
 - `action_bar.lua`: diagnostic-window buttons that delegate to reporting.
 - `slash_commands.lua`: parsing and delegation for `/tdlens` and `/coaarena`.
-- `minimap_button.lua`: click entry point for history and diagnostic views.
+- `minimap_button.lua`: draggable, position-persisted entry point for history
+  and diagnostic views.
 
 Gear/talent inspection, cooldown tracking, and a richer history UI remain
 future work. Live skirmish and rated-arena validation is still a release gate.

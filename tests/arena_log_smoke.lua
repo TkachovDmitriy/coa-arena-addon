@@ -60,6 +60,12 @@ ChatFontNormal = {}
 UIParent = new_ui_object()
 Minimap = new_ui_object()
 GameTooltip = new_ui_object()
+UIParent.GetEffectiveScale = function() return 1 end
+Minimap.GetCenter = function() return 0, 0 end
+
+function GetCursorPosition()
+   return 10, 10
+end
 
 bit = {
    band = function(left, right)
@@ -165,6 +171,12 @@ assert(namespace.addon:GetModule("DiagnosticLogFrame").frame)
 assert(namespace.addon:GetModule("DiagnosticLogFrame").frame.actions)
 minimap_button.scripts.OnEnter(minimap_button)
 minimap_button.scripts.OnLeave(minimap_button)
+minimap_button.scripts.OnDragStart(minimap_button)
+assert(minimap_button.scripts.OnUpdate)
+minimap_button.scripts.OnUpdate(minimap_button)
+assert(math.floor(namespace.addon.db.minimap_angle) == 45)
+minimap_button.scripts.OnDragStop(minimap_button)
+assert(not minimap_button.scripts.OnUpdate)
 
 local diagnostic_module = namespace.addon.modules.DiagnosticLogFrame
 namespace.addon.modules.DiagnosticLogFrame = nil
