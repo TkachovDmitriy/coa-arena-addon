@@ -54,9 +54,21 @@ history or SavedVariables.
 1. Enter a battleground and run `/tdlens testbg on`.
 2. Expect `BG test capture started` and `state=preparing(bg-test)` from
    `/tdlens debug`.
+   During the pre-match countdown, hostile buffs must not create `COMBAT`
+   lines, add test opponents, or change the state to `active(bg-test)`.
 3. Engage a hostile player and expect `state=active(bg-test)`.
    Run `/tdlens debug` and verify `test-opponents` immediately reflects the
    opponents captured so far, before the scoreboard is final.
+   Open `/tdlens log` and verify useful hostile-player casts, interrupts,
+   dispels, aura applications, and deaths appear as copyable
+   `COMBAT||event=...||source=...||dest=...` lines. Routine damage, healing,
+   periodic ticks, and events exclusively between unrelated players must not
+   be printed. Only events involving the player or their current target are
+   traced. Spell events should also include `spell-id` and `spell` when CoA
+   supplies them. Aura refresh/removal noise is intentionally omitted.
+   Repeated instances of the same visible event, source name, destination
+   name, and spell combination should appear only once per match, including
+   equivalent summoned units with different GUIDs.
 4. At the final scoreboard, expect `BG test captured`, including the result and
    opponent count. Arena `matches` must not increase.
 5. Run `/tdlens testbg export`. Expect one `BGTEST|...` diagnostic line with
@@ -91,3 +103,12 @@ before release.
   names. Final debug state was `idle`, `test-opponents=11`, `matches=0`, and
   `latest=#0`. One scoreboard entry had an unavailable class token (`?`), which
   is retained as unknown rather than guessed.
+- 2026-08-18 — Final short post-`/reload` BG validation completed with the
+  filtered combat trace. It retained useful target casts, aura applications,
+  and a dispel without damage/heal/tick or aura refresh/removal noise; no Lua
+  errors were observed. Export reported `complete=1`, `result=loss`, 716
+  seconds, player team 1, winner team 0, and 15 named opponents with valid
+  class tokens. Final debug state was `idle`, `test-opponents=15`, `matches=0`,
+  and `latest=#0`, confirming once more that BG data was not persisted. A
+  multi-target `Harvesting Grounds` aura burst produced several distinct
+  destination lines as expected.

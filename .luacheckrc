@@ -33,5 +33,6 @@ globals = {
    "TDArenaLensDB",
    "time",
    "UIParent",
+   "UnitGUID",
    "UnitName",
 }
