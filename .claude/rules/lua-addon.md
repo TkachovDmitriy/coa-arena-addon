@@ -42,11 +42,11 @@ Formatting/naming conventions are in `lua-style.md` (3-space indent,
 - **Private namespace, not globals.** Start every file with
   `local ADDON_NAME, ns = ...` and hang state off `ns`. The only intentional
   global is `_G.CoAArena`.
-- **One event frame.** `Core.lua` owns the single `CreateFrame("Frame")` and
+- **One event frame.** `core.lua` owns the single `CreateFrame("Frame")` and
   dispatches events. Modules never create their own event frames — call
   `CoAArena:NewModule(name)`, add an optional `OnEnable`, and define
   event-named methods (e.g. `PLAYER_ENTERING_WORLD`) the core routes to.
-- **Localized strings** go through `ns.L` (base locale `Locales/enUS.lua`);
+- **Localized strings** go through `ns.L` (base locale `locales/en_us.lua`);
   don't hardcode user-facing English elsewhere.
 
 ## SavedVariables

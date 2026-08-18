@@ -48,7 +48,7 @@ under **WoW deviations** below.
 ## Files & folders
 
 - Lua **file and folder names are `snake_case`, all lowercase**:
-  `core.lua`, `modules/arena_session.lua`, `locales/en_us.lua`.
+  `core.lua`, `features/arena_log/arena_session.lua`, `locales/en_us.lua`.
 - **Exception:** the addon folder and its `.toc` must share the exact addon
   name — `CoAArena/CoAArena.toc` (a WoW client requirement, not a style
   choice).
