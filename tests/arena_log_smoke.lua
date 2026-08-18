@@ -3,8 +3,9 @@
 local registered_events = {}
 local event_script
 local messages = {}
-local in_arena = false
+local instance_type = "none"
 local winner_team
+local create_frame_count = 0
 
 local event_frame = {}
 
@@ -20,8 +21,29 @@ function event_frame:SetScript(script, handler)
    if script == "OnEvent" then event_script = handler end
 end
 
+local function new_ui_object()
+   local object = { scripts = {} }
+   setmetatable(object, {
+      __index = function(_, method)
+         if method == "CreateTexture" or method == "CreateFontString" then
+            return function() return new_ui_object() end
+         elseif method == "GetFrameLevel" then
+            return function() return 1 end
+         elseif method == "IsShown" then
+            return function() return false end
+         elseif method == "SetScript" then
+            return function(_, script, handler) object.scripts[script] = handler end
+         end
+         return function() end
+      end,
+   })
+   return object
+end
+
 function CreateFrame()
-   return event_frame
+   create_frame_count = create_frame_count + 1
+   if create_frame_count == 1 then return event_frame end
+   return new_ui_object()
 end
 
 function GetAddOnMetadata()
@@ -33,6 +55,11 @@ DEFAULT_CHAT_FRAME = {
       table.insert(messages, message)
    end,
 }
+
+ChatFontNormal = {}
+UIParent = new_ui_object()
+Minimap = new_ui_object()
+GameTooltip = new_ui_object()
 
 bit = {
    band = function(left, right)
@@ -53,11 +80,11 @@ COMBATLOG_OBJECT_REACTION_HOSTILE = 2
 SlashCmdList = {}
 
 function IsInInstance()
-   return in_arena, in_arena and "arena" or "none"
+   return instance_type ~= "none", instance_type
 end
 
 function IsActiveBattlefieldArena()
-   return in_arena, true
+   return instance_type == "arena", true
 end
 
 function GetRealZoneText()
@@ -101,24 +128,51 @@ end
 local namespace = {}
 local function load_addon_file(path)
    local chunk = assert(loadfile(path))
-   chunk("CoAArena", namespace)
+   chunk("TDArenaLens", namespace)
 end
 
-load_addon_file("CoAArena/locales/en_us.lua")
-load_addon_file("CoAArena/core.lua")
-load_addon_file("CoAArena/shared/util.lua")
-load_addon_file("CoAArena/features/arena_log/store.lua")
-load_addon_file("CoAArena/features/arena_log/opponent_capture.lua")
-load_addon_file("CoAArena/features/arena_log/arena_session.lua")
-load_addon_file("CoAArena/features/arena_log/history_frame.lua")
+load_addon_file("TDArenaLens/locales/en_us.lua")
+load_addon_file("TDArenaLens/core.lua")
+load_addon_file("TDArenaLens/shared/util.lua")
+load_addon_file("TDArenaLens/features/arena_log/store.lua")
+load_addon_file("TDArenaLens/features/arena_log/opponent_capture.lua")
+load_addon_file("TDArenaLens/features/arena_log/arena_session.lua")
+load_addon_file("TDArenaLens/features/arena_log/history_frame.lua")
+load_addon_file("TDArenaLens/features/diagnostics/reporting.lua")
+load_addon_file("TDArenaLens/features/diagnostics/action_bar.lua")
+load_addon_file("TDArenaLens/features/diagnostics/log_frame.lua")
+load_addon_file("TDArenaLens/features/commands/slash_commands.lua")
+load_addon_file("TDArenaLens/features/launcher/minimap_button.lua")
 
-event_script(event_frame, "ADDON_LOADED", "CoAArena")
+event_script(event_frame, "ADDON_LOADED", "TDArenaLens")
 event_script(event_frame, "PLAYER_LOGIN")
+
+assert(SLASH_TDARENALENS1 == "/tdlens")
+assert(SLASH_TDARENALENS2 == "/coaarena")
+assert(type(SlashCmdList.TDARENALENS) == "function")
 
 local session = namespace.addon:GetModule("ArenaSession")
 assert(session:GetDebugState() == "idle")
+assert(namespace.addon:GetModule("DiagnosticLogFrame"))
+assert(namespace.addon:GetModule("DiagnosticReporting"))
+assert(namespace.addon:GetModule("SlashCommands"))
+local minimap_button = namespace.addon:GetModule("MinimapButton").button
+assert(minimap_button)
+minimap_button.scripts.OnClick(minimap_button, "LeftButton")
+assert(namespace.addon:GetModule("HistoryFrame").frame)
+minimap_button.scripts.OnClick(minimap_button, "RightButton")
+assert(namespace.addon:GetModule("DiagnosticLogFrame").frame)
+assert(namespace.addon:GetModule("DiagnosticLogFrame").frame.actions)
+minimap_button.scripts.OnEnter(minimap_button)
+minimap_button.scripts.OnLeave(minimap_button)
 
-in_arena = true
+local diagnostic_module = namespace.addon.modules.DiagnosticLogFrame
+namespace.addon.modules.DiagnosticLogFrame = nil
+minimap_button.scripts.OnClick(minimap_button, "RightButton")
+assert(string.find(messages[#messages], "DiagnosticLogFrame is unavailable", 1, true))
+namespace.addon.modules.DiagnosticLogFrame = diagnostic_module
+
+instance_type = "arena"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
 assert(session:GetDebugState() == "preparing")
 assert(registered_events.COMBAT_LOG_EVENT_UNFILTERED)
@@ -128,15 +182,14 @@ event_script(
    "COMBAT_LOG_EVENT_UNFILTERED",
    0,
    "SPELL_DAMAGE",
-   false,
    "enemy-guid",
    "Enemy",
    3,
-   0,
    "player-guid",
    "Player",
    1,
-   0
+   50401,
+   "Razorice"
 )
 assert(session:GetDebugState() == "active")
 
@@ -154,41 +207,106 @@ assert(#matches[1].opponents == 1)
 assert(matches[1].opponents[1].guid == "enemy-guid")
 assert(matches[1].opponents[1].class_token == "SHAMAN")
 
-in_arena = false
+instance_type = "none"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
 assert(session:GetDebugState() == "idle")
 assert(#namespace.arena_log.store.GetMatches() == 1)
 
 winner_team = nil
-in_arena = true
+instance_type = "arena"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
-in_arena = false
+instance_type = "none"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
 assert(#namespace.arena_log.store.GetMatches() == 1)
 
-in_arena = true
+instance_type = "arena"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
 event_script(
    event_frame,
    "COMBAT_LOG_EVENT_UNFILTERED",
    0,
    "SPELL_DAMAGE",
-   false,
    "second-enemy-guid",
    "SecondEnemy",
    3,
-   0,
    "player-guid",
    "Player",
-   1,
-   0
+   1
 )
-in_arena = false
+instance_type = "none"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
 assert(#namespace.arena_log.store.GetMatches() == 2)
 assert(namespace.arena_log.store.GetLatestMatch().id == 2)
 assert(namespace.arena_log.store.GetLatestMatch().result == "unknown")
 assert(not namespace.arena_log.store.GetLatestMatch().is_complete)
 
-SlashCmdList.COAARENA("debug")
+SlashCmdList.TDARENALENS("arena export")
+assert(string.find(messages[#messages], "ARENA||id=2||complete=0", 1, true))
+
+-- Battleground test mode exercises capture without polluting arena history.
+instance_type = "pvp"
+event_script(event_frame, "PLAYER_ENTERING_WORLD")
+assert(session:GetDebugState() == "idle")
+SlashCmdList.TDARENALENS("testbg on")
+assert(session:GetDebugState() == "preparing(bg-test)")
+assert(registered_events.COMBAT_LOG_EVENT_UNFILTERED)
+
+event_script(
+   event_frame,
+   "COMBAT_LOG_EVENT_UNFILTERED",
+   0,
+   "SPELL_DAMAGE",
+   "bg-enemy-guid",
+   "BattlegroundEnemy",
+   3,
+   "player-guid",
+   "Player",
+   1
+)
+assert(session:GetDebugState() == "active(bg-test)")
+SlashCmdList.TDARENALENS("debug")
+assert(string.find(messages[#messages], "test%-opponents=1"))
+
+SlashCmdList.TDARENALENS("testbg export")
+assert(string.find(messages[#messages], "No completed BG test"))
+
+winner_team = 0
+event_script(event_frame, "UPDATE_BATTLEFIELD_SCORE")
+assert(session:GetDebugState() == "complete(bg-test)")
+assert(#namespace.arena_log.store.GetMatches() == 2)
+assert(session:GetLastTestMatch().is_test)
+assert(not session:GetLastTestMatch().is_arena)
+assert(#session:GetLastTestMatch().opponents == 2)
+
+SlashCmdList.TDARENALENS("testbg export")
+assert(string.find(messages[#messages], "BGTEST||complete=1||result=win", 1, true))
+assert(string.find(messages[#messages], "||opponents=2||", 1, true))
+assert(string.find(messages[#messages], "BattlegroundEnemy:?", 1, true))
+assert(string.find(messages[#messages], "Enemy:SHAMAN", 1, true))
+assert(string.find(namespace.util.GetLogText(), "BGTEST||complete=1||result=win", 1, true))
+assert(#namespace.arena_log.store.GetMatches() == 2)
+
+local actions = namespace.addon:GetModule("DiagnosticLogFrame").frame.actions
+actions.status.scripts.OnClick(actions.status)
+assert(string.find(messages[#messages], "matches=2", 1, true))
+actions.arena_export.scripts.OnClick(actions.arena_export)
+assert(string.find(messages[#messages], "ARENA||id=2", 1, true))
+actions.bg_export.scripts.OnClick(actions.bg_export)
+assert(string.find(messages[#messages], "BGTEST||complete=1", 1, true))
+actions.bg_stop.scripts.OnClick(actions.bg_stop)
+assert(session:GetDebugState() == "idle")
+assert(not session:IsBgTestEnabled())
+actions.bg_start.scripts.OnClick(actions.bg_start)
+assert(session:GetDebugState() == "preparing(bg-test)")
+assert(session:IsBgTestEnabled())
+
+SlashCmdList.TDARENALENS("testbg off")
+assert(session:GetDebugState() == "idle")
+assert(#namespace.arena_log.store.GetMatches() == 2)
+
+SlashCmdList.TDARENALENS("debug")
 assert(#messages > 0)
+assert(namespace.util.GetLogLineCount() > 0)
+namespace.util.ClearLog()
+assert(namespace.util.GetLogText() == "")
+assert(namespace.util.GetLogLineCount() == 0)

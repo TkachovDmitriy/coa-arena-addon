@@ -1,6 +1,6 @@
 -- arena_log :: store — persistence layer for the arena-log domain. Owns the
 -- SavedVariables schema and migrations; every other file in this domain reads
--- and writes matches through here, never touching CoAArenaCharDB directly.
+-- and writes matches through here, never touching TDArenaLensCharDB directly.
 local ADDON_NAME, ns = ...
 
 local store = {}

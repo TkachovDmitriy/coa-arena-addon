@@ -13,9 +13,9 @@ fi
 
 while IFS= read -r lua_file; do
    "$lua_compiler" -p "$lua_file"
-done < <(rg --files CoAArena -g '*.lua')
+done < <(rg --files TDArenaLens -g '*.lua')
 
-luacheck CoAArena tests
+luacheck TDArenaLens tests
 "$lua_runtime" tests/arena_log_smoke.lua
 
 empty_tree="$(git hash-object -t tree /dev/null)"

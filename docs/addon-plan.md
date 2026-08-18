@@ -57,8 +57,10 @@ makes this impossible anyway), site integration, login/auth.
 The first vertical slice is implemented: arena entry/exit lifecycle, hostile
 player capture through `COMBAT_LOG_EVENT_UNFILTERED`, final scoreboard capture
 through `UPDATE_BATTLEFIELD_SCORE`, versioned per-character persistence, and a
-minimal `/coaarena` history view. `/coaarena debug` exposes the current capture
-state for live CoA testing.
+minimal `/tdlens` history view. `/tdlens debug` exposes the current capture
+state for live CoA testing. A runtime-only `/tdlens testbg on` mode reuses
+the capture pipeline in battlegrounds without writing test data to arena
+history; it is a partial validation path, not a replacement for arena tests.
 
 Still required before calling Phase 1 complete:
 
@@ -110,3 +112,8 @@ sharing/comparison, not just personal in-game history:
   repository.
 - 2026-08-18: first arena-log vertical slice implemented; live CoA validation
   remains the release gate.
+- 2026-08-18: added a non-persistent battleground test mode for characters
+  that cannot yet queue for arenas.
+- 2026-08-18: validated the BG test lifecycle and hostile-player capture live
+  on CoA through Lutris/Wine; 29 opponents were observed and arena history
+  remained empty. Real arena validation is still required.

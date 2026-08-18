@@ -1,6 +1,6 @@
 # Arena match schema v1
 
-Arena history lives at `CoAArenaCharDB.arena_log`. The container has a
+Arena history lives at `TDArenaLensCharDB.arena_log`. The container has a
 `schema`, a monotonic `next_id`, and an ordered `matches` array. All fields are
 plain Lua values so the WoW client can serialize them as `SavedVariables`.
 
@@ -21,4 +21,4 @@ before the player left the arena.
 
 Schema migrations belong exclusively in `features/arena_log/store.lua`.
 Feature code must use the store API instead of accessing
-`CoAArenaCharDB.arena_log` directly.
+`TDArenaLensCharDB.arena_log` directly.
