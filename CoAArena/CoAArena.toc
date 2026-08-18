@@ -7,8 +7,8 @@
 ## SavedVariablesPerCharacter: CoAArenaCharDB
 
 # Load order matters: locales, then core bootstrap, then feature modules.
-Locales\enUS.lua
+locales\en_us.lua
 
-Core.lua
+core.lua
 
-Modules\ArenaSession.lua
+modules\arena_session.lua

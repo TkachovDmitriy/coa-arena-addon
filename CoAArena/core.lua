@@ -19,14 +19,14 @@ CoAArena.modules = CoAArena.modules or {}
 -- (e.g. `PLAYER_ENTERING_WORLD`). The core fans events out to them.
 
 function CoAArena:NewModule(name)
-    assert(not self.modules[name], "CoAArena: module already registered: " .. tostring(name))
-    local module = { name = name }
-    self.modules[name] = module
-    return module
+   assert(not self.modules[name], "CoAArena: module already registered: " .. tostring(name))
+   local module = { name = name }
+   self.modules[name] = module
+   return module
 end
 
 function CoAArena:GetModule(name)
-    return self.modules[name]
+   return self.modules[name]
 end
 
 -- Event plumbing ------------------------------------------------------------
@@ -36,34 +36,34 @@ local frame = CreateFrame("Frame")
 CoAArena.frame = frame
 
 function CoAArena:RegisterEvent(event)
-    frame:RegisterEvent(event)
+   frame:RegisterEvent(event)
 end
 
 frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LOGIN")
 
 frame:SetScript("OnEvent", function(_, event, ...)
-    if event == "ADDON_LOADED" then
-        local loaded = ...
-        if loaded ~= ADDON_NAME then return end
-        -- SavedVariables are only populated by the client at this point.
-        CoAArenaDB = CoAArenaDB or {}
-        CoAArenaCharDB = CoAArenaCharDB or {}
-        CoAArena.db = CoAArenaDB
-        CoAArena.charDB = CoAArenaCharDB
-        return
-    end
+   if event == "ADDON_LOADED" then
+      local loaded = ...
+      if loaded ~= ADDON_NAME then return end
+      -- SavedVariables are only populated by the client at this point.
+      CoAArenaDB = CoAArenaDB or {}
+      CoAArenaCharDB = CoAArenaCharDB or {}
+      CoAArena.db = CoAArenaDB
+      CoAArena.charDB = CoAArenaCharDB
+      return
+   end
 
-    if event == "PLAYER_LOGIN" then
-        for _, module in pairs(CoAArena.modules) do
-            if module.OnEnable then module:OnEnable() end
-        end
-    end
+   if event == "PLAYER_LOGIN" then
+      for _, module in pairs(CoAArena.modules) do
+         if module.OnEnable then module:OnEnable() end
+      end
+   end
 
-    -- Fan every registered event out to any module declaring a same-named
-    -- handler method.
-    for _, module in pairs(CoAArena.modules) do
-        local handler = module[event]
-        if handler then handler(module, ...) end
-    end
+   -- Fan every registered event out to any module declaring a same-named
+   -- handler method.
+   for _, module in pairs(CoAArena.modules) do
+      local handler = module[event]
+      if handler then handler(module, ...) end
+   end
 end)

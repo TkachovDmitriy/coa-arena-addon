@@ -3,11 +3,20 @@
 Target client is **WoW 3.3.5 (WotLK)**, interface version `30300`. Only use
 APIs available in that client — no retail-only functions.
 
+Formatting/naming conventions are in `lua-style.md` (3-space indent,
+`snake_case` files, etc.). This file covers addon runtime/structure.
+
 ## Structure
 
 - The addon lives in the `CoAArena/` folder (symlinked into `AddOns/`). The
   repo root holds docs and meta only.
-- **Explicit load order in `CoAArena.toc`** — locales → `Core.lua` → modules.
+- The addon folder and its `.toc` **must** share the exact addon name
+  (`CoAArena/CoAArena.toc`) — a WoW requirement. Everything else is
+  `snake_case` (`core.lua`, `modules/arena_session.lua`).
+- **Subfolders are optional** — WoW imposes no layout; files are found only via
+  the `.toc`. Keep a small addon flat if you like; group into
+  `modules/`/`locales/`/`ui/`/`media/` as it grows.
+- **Explicit load order in `CoAArena.toc`** — locales → `core.lua` → modules.
   There is no autoloader; every new file must be added to the `.toc`.
 
 ## Code conventions

@@ -3,7 +3,8 @@
 Guidance for Claude Code (claude.ai/code) when working in this repository.
 
 Detailed, self-contained rules live in `.claude/rules/`
-(`git-flow.md`, `lua-addon.md`); this file is the high-level overview.
+(`git-flow.md`, `lua-addon.md`, `lua-style.md`); this file is the high-level
+overview.
 
 ## What this is
 
@@ -21,25 +22,32 @@ coa-arena-addon/            # repo root (docs, CI, meta)
 ├── docs/                   # planning / design notes
 └── CoAArena/               # the actual addon — symlink THIS into AddOns/
     ├── CoAArena.toc        # manifest: interface 30300, files in load order
-    ├── Core.lua            # bootstrap: namespace, module registry, events
-    ├── Locales/            # enUS.lua is the base locale
-    ├── Modules/            # one file per feature (e.g. ArenaSession.lua)
-    ├── UI/                 # frame definitions
-    └── Media/              # textures / fonts / sounds
+    ├── core.lua            # bootstrap: namespace, module registry, events
+    ├── locales/            # en_us.lua is the base locale
+    ├── modules/            # one file per feature (e.g. arena_session.lua)
+    ├── ui/                 # frame definitions
+    └── media/              # textures / fonts / sounds
 ```
+
+The `CoAArena/` folder + `CoAArena.toc` must share that exact name (WoW
+requirement); every other file/folder is lowercase `snake_case`. Subfolders
+are optional — files are found only via the `.toc`, so a small addon may stay
+flat.
 
 ## Addon conventions
 
 - **Private namespace, not globals.** Every file starts with
   `local ADDON_NAME, ns = ...` and hangs state off `ns`. The only intentional
   global is `_G.CoAArena` (for `/`-commands and debugging).
-- **One event frame.** `Core.lua` owns the single `CreateFrame("Frame")` and
+- **One event frame.** `core.lua` owns the single `CreateFrame("Frame")` and
   fans events out to modules. Modules never create their own event frames —
   they call `CoAArena:NewModule(name)`, declare an optional `OnEnable`, and
   add event-named methods (`PLAYER_ENTERING_WORLD`, etc.) that the core
   dispatches to.
-- **Load order is explicit in the `.toc`.** Locales → `Core.lua` → modules.
+- **Load order is explicit in the `.toc`.** Locales → `core.lua` → modules.
   Add new files to `CoAArena.toc`; there is no autoloader.
+- **Code style** (3-space indent, `snake_case` files/locals, PascalCase
+  methods) is in `.claude/rules/lua-style.md`.
 - **SavedVariables.** `CoAArenaDB` (account) and `CoAArenaCharDB` (per
   character — arena rating/history is per character). Only populated after
   `ADDON_LOADED`; version any schema so future updates can migrate old data.

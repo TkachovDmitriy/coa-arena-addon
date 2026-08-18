@@ -30,12 +30,16 @@ coa-arena-addon/          # repo root
 ├── docs/                 # planning / design notes
 └── CoAArena/             # the addon — symlink THIS into AddOns/
     ├── CoAArena.toc      # manifest (interface 30300, files in load order)
-    ├── Core.lua          # bootstrap: namespace, module registry, events
-    ├── Locales/          # enUS.lua base locale
-    ├── Modules/          # one file per feature (e.g. ArenaSession.lua)
-    ├── UI/               # frame definitions
-    └── Media/            # textures / fonts / sounds
+    ├── core.lua          # bootstrap: namespace, module registry, events
+    ├── locales/          # en_us.lua base locale
+    ├── modules/          # one file per feature (e.g. arena_session.lua)
+    ├── ui/               # frame definitions
+    └── media/            # textures / fonts / sounds
 ```
+
+The `CoAArena/` folder and `CoAArena.toc` must share that exact name (a WoW
+requirement); everything else is lowercase `snake_case`. Subfolders are
+optional — files load only via the `.toc`.
 
 Conventions and git-flow notes live in [CLAUDE.md](CLAUDE.md).
 
