@@ -1,19 +1,11 @@
 -- arena_log :: history_frame — in-game UI to browse logged matches (this
 -- session + persisted history). Reads through ns.arena_log.store.
 local ADDON_NAME, ns = ...
-local CoAArena = ns.addon
+local TDArenaLens = ns.addon
 local L = ns.L
-local util = ns.util
 local store = ns.arena_log.store
 
-local HistoryFrame = CoAArena:NewModule("HistoryFrame")
-
-function HistoryFrame:OnEnable()
-   SLASH_COAARENA1 = "/coaarena"
-   SlashCmdList.COAARENA = function(message)
-      self:HandleCommand(message)
-   end
-end
+local HistoryFrame = TDArenaLens:NewModule("HistoryFrame")
 
 -- Show/hide the match-history browser, building it lazily on first open.
 function HistoryFrame:Toggle()
@@ -27,7 +19,7 @@ function HistoryFrame:Toggle()
 end
 
 function HistoryFrame:CreateFrame()
-   local frame = CreateFrame("Frame", "CoAArenaHistoryFrame", UIParent)
+   local frame = CreateFrame("Frame", "TDArenaLensHistoryFrame", UIParent)
    frame:SetWidth(560)
    frame:SetHeight(360)
    frame:SetPoint("CENTER")
@@ -91,36 +83,4 @@ function HistoryFrame:Refresh()
       ))
    end
    self.frame.content:SetText(table.concat(lines, "\n\n"))
-end
-
-function HistoryFrame:HandleCommand(message)
-   local command = string.lower(message or "")
-   local test_setting = string.match(command, "^testbg%s+(%S+)$")
-   if command == "testbg" or string.match(command, "^testbg%s+") then
-      local session = CoAArena:GetModule("ArenaSession")
-      if test_setting == "on" or test_setting == "off" then
-         session:SetBgTestEnabled(test_setting == "on")
-      end
-      util.Print(string.format(
-         L["BG_TEST_STATUS"],
-         session:IsBgTestEnabled() and L["ENABLED"] or L["DISABLED"]
-      ))
-      return
-   end
-
-   if command == "debug" then
-      local session = CoAArena:GetModule("ArenaSession")
-      local latest = store.GetLatestMatch()
-      local last_test = session and session:GetLastTestMatch()
-      util.Print(string.format(
-         L["DEBUG_STATE"],
-         session and session:GetDebugState() or "missing",
-         #store.GetMatches(),
-         latest and latest.id or 0,
-         last_test and #last_test.opponents or 0
-      ))
-      return
-   end
-
-   self:Toggle()
 end

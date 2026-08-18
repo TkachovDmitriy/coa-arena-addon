@@ -1,10 +1,10 @@
 ## Interface: 30300
-## Title: CoA Arena
+## Title: TD ArenaLens
 ## Notes: Arena companion — logs matches, opponents and cooldowns.
 ## Author: TkachovDmitriy
 ## Version: 0.1.0-dev
-## SavedVariables: CoAArenaDB
-## SavedVariablesPerCharacter: CoAArenaCharDB
+## SavedVariables: TDArenaLensDB
+## SavedVariablesPerCharacter: TDArenaLensCharDB
 
 # Load order matters: locales, core, shared helpers, then feature domains.
 # Within a domain, load data/store before the modules that use it.
@@ -19,6 +19,12 @@ features\arena_log\store.lua
 features\arena_log\opponent_capture.lua
 features\arena_log\arena_session.lua
 features\arena_log\history_frame.lua
+
+# feature: diagnostics
+features\diagnostics\log_frame.lua
+
+# feature: commands
+features\commands\slash_commands.lua
 
 # feature: cooldowns
 features\cooldowns\tracker.lua

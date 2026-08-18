@@ -8,8 +8,7 @@ ignore = {
 }
 globals = {
    "bit",
-   "CoAArenaCharDB",
-   "CoAArenaDB",
+   "ChatFontNormal",
    "COMBATLOG_OBJECT_REACTION_HOSTILE",
    "COMBATLOG_OBJECT_TYPE_PLAYER",
    "CreateFrame",
@@ -25,7 +24,10 @@ globals = {
    "IsActiveBattlefieldArena",
    "IsInInstance",
    "SlashCmdList",
-   "SLASH_COAARENA1",
+   "SLASH_TDARENALENS1",
+   "SLASH_TDARENALENS2",
+   "TDArenaLensCharDB",
+   "TDArenaLensDB",
    "time",
    "UIParent",
    "UnitName",

@@ -2,22 +2,22 @@
 -- rest of the domain (opponent capture, persistence). See docs/addon-plan.md,
 -- Phase 1.
 local ADDON_NAME, ns = ...
-local CoAArena = ns.addon
+local TDArenaLens = ns.addon
 local L = ns.L
 local util = ns.util
 local store = ns.arena_log.store
 
-local ArenaSession = CoAArena:NewModule("ArenaSession")
+local ArenaSession = TDArenaLens:NewModule("ArenaSession")
 
 local function base_name(name)
    return name and string.match(name, "^[^-]+")
 end
 
 function ArenaSession:OnEnable()
-   store.Init(CoAArena.charDB)
-   CoAArena:RegisterEvent("PLAYER_ENTERING_WORLD", self)
-   CoAArena:RegisterEvent("ZONE_CHANGED_NEW_AREA", self)
-   CoAArena:RegisterEvent("UPDATE_BATTLEFIELD_SCORE", self)
+   store.Init(TDArenaLens.charDB)
+   TDArenaLens:RegisterEvent("PLAYER_ENTERING_WORLD", self)
+   TDArenaLens:RegisterEvent("ZONE_CHANGED_NEW_AREA", self)
+   TDArenaLens:RegisterEvent("UPDATE_BATTLEFIELD_SCORE", self)
    self.phase = "idle"
    self.bg_test_enabled = false
    self.last_test_match = nil
@@ -63,12 +63,12 @@ function ArenaSession:OnSessionStart(session_kind)
    self.zone = GetRealZoneText()
    self.is_rated = is_rated and true or false
    util.Print(is_test and L["BG_TEST_STARTED"] or L["ARENA_ENTERED"])
-   local capture = CoAArena:GetModule("OpponentCapture")
+   local capture = TDArenaLens:GetModule("OpponentCapture")
    if capture then capture:StartCapture() end
 end
 
 function ArenaSession:OnSessionEnd()
-   local capture = CoAArena:GetModule("OpponentCapture")
+   local capture = TDArenaLens:GetModule("OpponentCapture")
    local opponents = capture and capture:StopCapture()
 
    if self.phase ~= "complete" and (self.first_combat_at or (opponents and #opponents > 0)) then
@@ -164,7 +164,7 @@ function ArenaSession:UPDATE_BATTLEFIELD_SCORE()
    if winner_team == nil then return end
 
    local player_team, player = self:GetPlayerScore()
-   local capture = CoAArena:GetModule("OpponentCapture")
+   local capture = TDArenaLens:GetModule("OpponentCapture")
    if capture then capture:CaptureScoreboard(player_team) end
    local opponents = capture and capture:StopCapture() or {}
 
@@ -195,4 +195,13 @@ end
 
 function ArenaSession:GetLastTestMatch()
    return self.last_test_match
+end
+
+function ArenaSession:GetTestOpponentCount()
+   if self.session_kind == "bg_test" and self.phase ~= "complete" then
+      local capture = TDArenaLens:GetModule("OpponentCapture")
+      return capture and capture:GetOpponentCount() or 0
+   end
+
+   return self.last_test_match and #self.last_test_match.opponents or 0
 end

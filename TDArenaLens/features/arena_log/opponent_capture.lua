@@ -1,9 +1,9 @@
 -- arena_log :: opponent_capture — collects opponent identity/gear during a
 -- match. Driven by arena_session (start/stop), not by its own zone logic.
 local ADDON_NAME, ns = ...
-local CoAArena = ns.addon
+local TDArenaLens = ns.addon
 
-local OpponentCapture = CoAArena:NewModule("OpponentCapture")
+local OpponentCapture = TDArenaLens:NewModule("OpponentCapture")
 
 local function opponent_key(name)
    local name_without_realm = name and string.match(name, "^[^-]+")
@@ -47,20 +47,24 @@ function OpponentCapture:StartCapture()
    self.opponents_by_key = {}
    self.opponents_by_name = {}
    self.is_capturing = true
-   CoAArena:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", self)
+   TDArenaLens:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", self)
 end
 
 -- Stop buffering and return what was collected this match.
 function OpponentCapture:StopCapture()
    if self.is_capturing then
-      CoAArena:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED", self)
+      TDArenaLens:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED", self)
    end
    self.is_capturing = false
    return self.opponents
 end
 
+function OpponentCapture:GetOpponentCount()
+   return self.opponents and #self.opponents or 0
+end
+
 function OpponentCapture:COMBAT_LOG_EVENT_UNFILTERED(
-   _, _, _, source_guid, source_name, source_flags, _,
+   _, _, source_guid, source_name, source_flags,
    dest_guid, dest_name, dest_flags
 )
    if not self.is_capturing then return end
@@ -76,7 +80,7 @@ function OpponentCapture:COMBAT_LOG_EVENT_UNFILTERED(
    end
 
    if observed_opponent then
-      local session = CoAArena:GetModule("ArenaSession")
+      local session = TDArenaLens:GetModule("ArenaSession")
       if session then session:OnCombatObserved() end
    end
 end

@@ -7,15 +7,20 @@ with `README.md`, `docs/addon-plan.md`, and `docs/manual-testing.md`.
 
 ## Product and architecture
 
-CoA Arena is a pure Lua 5.1 addon for the Conquest of Azeroth WoW 3.3.5 client
+TD ArenaLens is a pure Lua 5.1 addon for the Conquest of Azeroth WoW 3.3.5 client
 (`Interface: 30300`). The first vertical slice records arena sessions,
 opponents, win/loss, scoreboard data, and rated-team rating changes. History is
-per-character in versioned SavedVariables and is shown with `/coaarena`.
+per-character in versioned SavedVariables and is shown with `/tdlens`.
 
 The addon uses a private namespace, feature-based folders, one shared event
 frame, deterministic module dispatch, and three-space Lua indentation. Arena
 log persistence is owned only by `features/arena_log/store.lua`; its schema is
 documented in `docs/match-schema.md`.
+
+The addon was renamed from CoA Arena/`CoAArena` to TD ArenaLens/`TDArenaLens`
+in the current working tree. The primary slash command is `/tdlens`, with
+`/coaarena` retained as a compatibility alias. The old local SavedVariables
+were inspected before the rename and contained no arena matches to migrate.
 
 Implemented modules:
 
@@ -23,7 +28,9 @@ Implemented modules:
 - `opponent_capture.lua`: hostile-player combat-log capture and scoreboard
   enrichment.
 - `store.lua`: schema v1, match IDs, append/read/latest operations.
-- `history_frame.lua`: `/coaarena`, `/coaarena debug`, and BG test commands.
+- `history_frame.lua`: recent-match history UI only.
+- `log_frame.lua`: copyable runtime diagnostics plus command/version/author UI.
+- `slash_commands.lua`: parsing and delegation for `/tdlens` and `/coaarena`.
 
 Gear/talent inspection, cooldown tracking, and a richer history UI remain
 future work. Live skirmish and rated-arena validation is still a release gate.
@@ -41,6 +48,11 @@ future work. Live skirmish and rated-arena validation is still a release gate.
   PR (#4).
 - BG test-mode commits: `0ad77cc` (implementation) and `5eac171` (live-test
   documentation). The branch is pushed but not merged into `main`.
+- The working tree is intentionally uncommitted. It contains the live buffered
+  opponent count, BG export, CoA combat-log argument fix, WoW pipe escaping,
+  tests/docs, and the full TD ArenaLens rename. Git currently shows deleted
+  `CoAArena/` files plus untracked `TDArenaLens/`; these are the expected
+  unstaged directory renames, not lost files.
 - Create/open the PR at
   `https://github.com/TkachovDmitriy/coa-arena-addon/pull/new/feat/bg-test-mode`.
 
@@ -58,10 +70,11 @@ nix develop
 ./scripts/check.sh
 ```
 
-The last full check after implementing BG test mode passed with 0 warnings and
-0 errors. Do not run Lua checks after every small edit; the agreed workflow is
-one full check after the change is complete, before committing. Documentation-
-only edits need only `git diff --check`.
+The last full `nix develop -c ./scripts/check.sh` run after all follow-up fixes
+and the TD ArenaLens rename passed with 0 warnings and 0 errors in 12 Lua
+files; the smoke test also passed. Do not run Lua checks after every small edit;
+the agreed workflow is one full check after the change is complete, before
+committing. Documentation-only edits need only `git diff --check`.
 
 ## Local WoW installation
 
@@ -71,11 +84,16 @@ WoW is launched through Lutris/Wine. The active client addon directory is:
 /home/td/Games/ascension-wow/drive_c/Program Files/Ascension Launcher/resources/ascension-live/Interface/AddOns
 ```
 
-`CoAArena` should be a symlink from that directory to:
+`TDArenaLens` should be a symlink from that directory to:
 
 ```text
-/home/td/projects/own-develop/coa-arena-addon/CoAArena
+/home/td/projects/own-develop/coa-arena-addon/TDArenaLens
 ```
+
+The new symlink was created and verified. The obsolete `CoAArena` symlink was
+removed; its former target was only renamed, not deleted. Because WoW discovers
+addon folders at startup, fully restart the client before testing the renamed
+addon rather than relying only on `/reload`.
 
 Quote the complete paths in shell commands because `Program Files` and
 `Ascension Launcher` contain spaces. A stray self-referencing symlink named
@@ -88,9 +106,9 @@ The current feature branch adds a runtime-only battleground mode so the capture
 pipeline can be tested without an arena-ready character:
 
 ```text
-/coaarena testbg on
-/coaarena debug
-/coaarena testbg off
+/tdlens testbg on
+/tdlens debug
+/tdlens testbg off
 ```
 
 Inside a BG, the expected lifecycle is `preparing(bg-test)`,
@@ -111,20 +129,32 @@ This validates addon loading, commands, combat-log capture, scoreboard capture,
 and the non-persistence guard. It does not validate arena instance detection,
 arena-specific team/rating APIs, or CoA's arena event order.
 
+The working tree now also makes active BG captures report their live buffered
+opponent count in `/tdlens debug` and adds `/tdlens testbg export`. Export
+prints one compact `BGTEST|...` line with completion, result, duration, team
+IDs, opponent count, and a `Name:CLASS` list; it does not persist anything.
+These follow-up changes pass the automated checks and the short live BG retest
+below.
+
+The first follow-up live attempt exposed a CoA 3.3.5 combat-log difference:
+`COMBAT_LOG_EVENT_UNFILTERED` has no `hideCaster` argument. The former shifted
+handler treated numeric source flags as names and eventually passed the spell
+name `Razorice` to `bit.band`. The handler and smoke fixture now use the live
+argument order. Literal pipe separators in the export format are also escaped
+for WoW chat so `|result` is not interpreted as the `|r` color-reset code.
+
+The 2026-08-18 follow-up BG retest exported a completed loss with 11 real player
+names and no shifted numeric flags or spell names. The final debug state was
+`idle`, `test-opponents=11`, `matches=0`, and `latest=#0`, confirming the
+non-persistence guard after the fixes.
+
 ## Next work
 
-Before merging the BG test-mode branch:
-
-1. Improve `/coaarena debug` so an active BG test shows the current buffered
-   opponent count. It currently shows opponents only from the last completed
-   test, which caused understandable confusion during live testing.
-2. Add `/coaarena testbg export` to print a compact diagnostic result that can
-   be copied without persisting it as arena history.
-3. Update the smoke test and manual-testing documentation for both behaviours.
-4. Run one final `nix develop -c ./scripts/check.sh`, push, and repeat the short
-   live BG test.
-5. Merge `feat/bg-test-mode` into `main` after the retest passes.
-
-Later, test both skirmish and rated arenas with an eligible character by using
-the full checklist in `docs/manual-testing.md`. Record CoA-specific API/event
-differences before changing the persisted schema.
+1. Commit and push the follow-up changes, then merge `feat/bg-test-mode` into
+   `main`.
+2. Publish a GitHub pre-release for a community arena tester. `/tdlens log`
+   provides a copyable runtime diagnostic window, so testers do not need to
+   select export/debug output from chat.
+3. Test both skirmish and rated arenas with an eligible character by using the
+   full checklist in `docs/manual-testing.md`. Record CoA-specific API/event
+   differences before changing the persisted schema.

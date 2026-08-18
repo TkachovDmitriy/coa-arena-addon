@@ -101,22 +101,30 @@ end
 local namespace = {}
 local function load_addon_file(path)
    local chunk = assert(loadfile(path))
-   chunk("CoAArena", namespace)
+   chunk("TDArenaLens", namespace)
 end
 
-load_addon_file("CoAArena/locales/en_us.lua")
-load_addon_file("CoAArena/core.lua")
-load_addon_file("CoAArena/shared/util.lua")
-load_addon_file("CoAArena/features/arena_log/store.lua")
-load_addon_file("CoAArena/features/arena_log/opponent_capture.lua")
-load_addon_file("CoAArena/features/arena_log/arena_session.lua")
-load_addon_file("CoAArena/features/arena_log/history_frame.lua")
+load_addon_file("TDArenaLens/locales/en_us.lua")
+load_addon_file("TDArenaLens/core.lua")
+load_addon_file("TDArenaLens/shared/util.lua")
+load_addon_file("TDArenaLens/features/arena_log/store.lua")
+load_addon_file("TDArenaLens/features/arena_log/opponent_capture.lua")
+load_addon_file("TDArenaLens/features/arena_log/arena_session.lua")
+load_addon_file("TDArenaLens/features/arena_log/history_frame.lua")
+load_addon_file("TDArenaLens/features/diagnostics/log_frame.lua")
+load_addon_file("TDArenaLens/features/commands/slash_commands.lua")
 
-event_script(event_frame, "ADDON_LOADED", "CoAArena")
+event_script(event_frame, "ADDON_LOADED", "TDArenaLens")
 event_script(event_frame, "PLAYER_LOGIN")
+
+assert(SLASH_TDARENALENS1 == "/tdlens")
+assert(SLASH_TDARENALENS2 == "/coaarena")
+assert(type(SlashCmdList.TDARENALENS) == "function")
 
 local session = namespace.addon:GetModule("ArenaSession")
 assert(session:GetDebugState() == "idle")
+assert(namespace.addon:GetModule("DiagnosticLogFrame"))
+assert(namespace.addon:GetModule("SlashCommands"))
 
 instance_type = "arena"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
@@ -128,15 +136,14 @@ event_script(
    "COMBAT_LOG_EVENT_UNFILTERED",
    0,
    "SPELL_DAMAGE",
-   false,
    "enemy-guid",
    "Enemy",
    3,
-   0,
    "player-guid",
    "Player",
    1,
-   0
+   50401,
+   "Razorice"
 )
 assert(session:GetDebugState() == "active")
 
@@ -173,15 +180,12 @@ event_script(
    "COMBAT_LOG_EVENT_UNFILTERED",
    0,
    "SPELL_DAMAGE",
-   false,
    "second-enemy-guid",
    "SecondEnemy",
    3,
-   0,
    "player-guid",
    "Player",
-   1,
-   0
+   1
 )
 instance_type = "none"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
@@ -194,7 +198,7 @@ assert(not namespace.arena_log.store.GetLatestMatch().is_complete)
 instance_type = "pvp"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
 assert(session:GetDebugState() == "idle")
-SlashCmdList.COAARENA("testbg on")
+SlashCmdList.TDARENALENS("testbg on")
 assert(session:GetDebugState() == "preparing(bg-test)")
 assert(registered_events.COMBAT_LOG_EVENT_UNFILTERED)
 
@@ -203,17 +207,19 @@ event_script(
    "COMBAT_LOG_EVENT_UNFILTERED",
    0,
    "SPELL_DAMAGE",
-   false,
    "bg-enemy-guid",
    "BattlegroundEnemy",
    3,
-   0,
    "player-guid",
    "Player",
-   1,
-   0
+   1
 )
 assert(session:GetDebugState() == "active(bg-test)")
+SlashCmdList.TDARENALENS("debug")
+assert(string.find(messages[#messages], "test%-opponents=1"))
+
+SlashCmdList.TDARENALENS("testbg export")
+assert(string.find(messages[#messages], "No completed BG test"))
 
 winner_team = 0
 event_script(event_frame, "UPDATE_BATTLEFIELD_SCORE")
@@ -223,9 +229,21 @@ assert(session:GetLastTestMatch().is_test)
 assert(not session:GetLastTestMatch().is_arena)
 assert(#session:GetLastTestMatch().opponents == 2)
 
-SlashCmdList.COAARENA("testbg off")
+SlashCmdList.TDARENALENS("testbg export")
+assert(string.find(messages[#messages], "BGTEST||complete=1||result=win", 1, true))
+assert(string.find(messages[#messages], "||opponents=2||", 1, true))
+assert(string.find(messages[#messages], "BattlegroundEnemy:?", 1, true))
+assert(string.find(messages[#messages], "Enemy:SHAMAN", 1, true))
+assert(string.find(namespace.util.GetLogText(), "BGTEST||complete=1||result=win", 1, true))
+assert(#namespace.arena_log.store.GetMatches() == 2)
+
+SlashCmdList.TDARENALENS("testbg off")
 assert(session:GetDebugState() == "idle")
 assert(#namespace.arena_log.store.GetMatches() == 2)
 
-SlashCmdList.COAARENA("debug")
+SlashCmdList.TDARENALENS("debug")
 assert(#messages > 0)
+assert(namespace.util.GetLogLineCount() > 0)
+namespace.util.ClearLog()
+assert(namespace.util.GetLogText() == "")
+assert(namespace.util.GetLogLineCount() == 0)

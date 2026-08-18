@@ -1,5 +1,5 @@
 {
-  description = "CoA Arena addon development environment";
+  description = "TD ArenaLens addon development environment";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 

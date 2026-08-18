@@ -1,4 +1,4 @@
--- CoAArena — core bootstrap.
+-- TDArenaLens — core bootstrap.
 --
 -- Every file in this addon receives the same two `...` varargs from the
 -- client: the addon's folder name and a private namespace table shared only
@@ -6,29 +6,31 @@
 -- environment so we don't pollute `_G` (WoW addon best practice).
 local ADDON_NAME, ns = ...
 
-local CoAArena = ns.addon or {}
-ns.addon = CoAArena
-_G.CoAArena = CoAArena -- also exposed globally for /commands and debugging
+local TDArenaLens = ns.addon or {}
+ns.addon = TDArenaLens
+_G.TDArenaLens = TDArenaLens
+_G.CoAArena = TDArenaLens -- compatibility alias for existing debug snippets
 
-CoAArena.name = ADDON_NAME
-CoAArena.version = GetAddOnMetadata(ADDON_NAME, "Version")
-CoAArena.modules = CoAArena.modules or {}
-CoAArena.module_order = CoAArena.module_order or {}
-CoAArena.event_modules = CoAArena.event_modules or {}
+TDArenaLens.name = ADDON_NAME
+TDArenaLens.version = GetAddOnMetadata(ADDON_NAME, "Version")
+TDArenaLens.author = GetAddOnMetadata(ADDON_NAME, "Author")
+TDArenaLens.modules = TDArenaLens.modules or {}
+TDArenaLens.module_order = TDArenaLens.module_order or {}
+TDArenaLens.event_modules = TDArenaLens.event_modules or {}
 
 -- Module registry -----------------------------------------------------------
 -- A "module" is just a table with optional `OnEnable` and event-named methods
 -- (e.g. `PLAYER_ENTERING_WORLD`). The core fans events out to them.
 
-function CoAArena:NewModule(name)
-   assert(not self.modules[name], "CoAArena: module already registered: " .. tostring(name))
+function TDArenaLens:NewModule(name)
+   assert(not self.modules[name], "TDArenaLens: module already registered: " .. tostring(name))
    local module = { name = name }
    self.modules[name] = module
    table.insert(self.module_order, module)
    return module
 end
 
-function CoAArena:GetModule(name)
+function TDArenaLens:GetModule(name)
    return self.modules[name]
 end
 
@@ -36,11 +38,11 @@ end
 -- One hidden frame for the whole addon; modules never create their own event
 -- frames, they just declare handlers and register interest via the core.
 local frame = CreateFrame("Frame")
-CoAArena.frame = frame
+TDArenaLens.frame = frame
 
-function CoAArena:RegisterEvent(event, module)
-   assert(type(event) == "string", "CoAArena: event must be a string")
-   assert(type(module) == "table", "CoAArena: event owner must be a module")
+function TDArenaLens:RegisterEvent(event, module)
+   assert(type(event) == "string", "TDArenaLens: event must be a string")
+   assert(type(module) == "table", "TDArenaLens: event owner must be a module")
 
    local subscribers = self.event_modules[event]
    if not subscribers then
@@ -51,7 +53,7 @@ function CoAArena:RegisterEvent(event, module)
    subscribers[module] = true
 end
 
-function CoAArena:UnregisterEvent(event, module)
+function TDArenaLens:UnregisterEvent(event, module)
    local subscribers = self.event_modules[event]
    if not subscribers then return end
 
@@ -70,25 +72,25 @@ frame:SetScript("OnEvent", function(_, event, ...)
       local loaded = ...
       if loaded ~= ADDON_NAME then return end
       -- SavedVariables are only populated by the client at this point.
-      CoAArenaDB = CoAArenaDB or {}
-      CoAArenaCharDB = CoAArenaCharDB or {}
-      CoAArena.db = CoAArenaDB
-      CoAArena.charDB = CoAArenaCharDB
+      TDArenaLensDB = TDArenaLensDB or {}
+      TDArenaLensCharDB = TDArenaLensCharDB or {}
+      TDArenaLens.db = TDArenaLensDB
+      TDArenaLens.charDB = TDArenaLensCharDB
       return
    end
 
    if event == "PLAYER_LOGIN" then
-      for _, module in ipairs(CoAArena.module_order) do
+      for _, module in ipairs(TDArenaLens.module_order) do
          if module.OnEnable then module:OnEnable() end
       end
    end
 
-   local subscribers = CoAArena.event_modules[event]
+   local subscribers = TDArenaLens.event_modules[event]
    if not subscribers then return end
 
    -- Use module load order for deterministic dispatch when multiple modules
    -- subscribe to the same event.
-   for _, module in ipairs(CoAArena.module_order) do
+   for _, module in ipairs(TDArenaLens.module_order) do
       if subscribers[module] then
          local handler = module[event]
          if handler then handler(module, ...) end

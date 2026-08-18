@@ -57,8 +57,8 @@ makes this impossible anyway), site integration, login/auth.
 The first vertical slice is implemented: arena entry/exit lifecycle, hostile
 player capture through `COMBAT_LOG_EVENT_UNFILTERED`, final scoreboard capture
 through `UPDATE_BATTLEFIELD_SCORE`, versioned per-character persistence, and a
-minimal `/coaarena` history view. `/coaarena debug` exposes the current capture
-state for live CoA testing. A runtime-only `/coaarena testbg on` mode reuses
+minimal `/tdlens` history view. `/tdlens debug` exposes the current capture
+state for live CoA testing. A runtime-only `/tdlens testbg on` mode reuses
 the capture pipeline in battlegrounds without writing test data to arena
 history; it is a partial validation path, not a replacement for arena tests.
 
