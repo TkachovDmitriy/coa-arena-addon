@@ -19,8 +19,9 @@ own backlog copy of the original idea.
 
 - Tally poll embedded on the ladder site (`feat/validation-poll-popup`)
   asking if players would use an addon like this.
-- **Decision gate:** don't start Phase 1 until the poll shows real positive
-  signal. No fixed threshold yet — revisit once responses come in.
+- The technical vertical slice proceeded to retire the largest API risks.
+  Distribution and any backend investment remain gated on positive demand;
+  no fixed threshold has been chosen yet.
 
 ## Phase 1 — Addon MVP (addon-only, no backend)
 
@@ -45,11 +46,27 @@ Scope:
 - In-game UI: a simple frame to browse logged matches (this session +
   persisted history) — list view, opponent details on click. No fancy
   styling needed for v1.
-- Testing: manual only (log into CoA, queue arena, verify capture) — no Lua
-  unit test tooling planned for v1, consistent with keeping this lean.
+- Testing: Lua 5.1 syntax/static checks and a framework-free mocked smoke test;
+  actual event order and data still require manual matches on CoA.
 
 Explicitly out of scope for Phase 1: any network call (client sandboxing
 makes this impossible anyway), site integration, login/auth.
+
+### Current implementation status
+
+The first vertical slice is implemented: arena entry/exit lifecycle, hostile
+player capture through `COMBAT_LOG_EVENT_UNFILTERED`, final scoreboard capture
+through `UPDATE_BATTLEFIELD_SCORE`, versioned per-character persistence, and a
+minimal `/coaarena` history view. `/coaarena debug` exposes the current capture
+state for live CoA testing.
+
+Still required before calling Phase 1 complete:
+
+- Run and document the manual arena checklist on CoA for skirmish and rated
+  matches.
+- Add best-effort gear/talent inspection after validating hostile-unit inspect
+  behaviour on the server.
+- Improve the history browser with selectable opponent details.
 
 ## Phase 2 — Distribution
 
@@ -79,13 +96,17 @@ sharing/comparison, not just personal in-game history:
   mid-session loses that session's unsaved matches.
 - Inspect API can't guarantee gear/talent capture for every opponent within
   an arena match's time window.
-- Need to confirm the exact 3.3.5 event/API for reliable arena start/end
-  detection and for reading the post-match rating delta before writing any
-  code — noted here as a spike, not solved yet.
-- Combat log volume in a busy arena fight — needs a cheap filter (own
-  arena unit IDs only) to avoid perf issues.
+- Stock 3.3.5 exposes final arena data on `UPDATE_BATTLEFIELD_SCORE` through
+  `GetBattlefieldWinner`, `GetBattlefieldScore`, and
+  `GetBattlefieldTeamInfo`. The implementation follows that path, but it still
+  needs live verification against CoA's server-specific behaviour.
+- Combat log volume in a busy arena fight — capture currently performs only a
+  bitmask check for hostile players, but live profiling should confirm the
+  filter is cheap enough on CoA.
 
 ## Notes
 
-- 2026-08-18: plan drafted, repo decision made (separate repo, created
-  later). No code written yet — still gated on Phase 0 poll signal.
+- 2026-08-18: plan drafted and the addon scaffold created in this separate
+  repository.
+- 2026-08-18: first arena-log vertical slice implemented; live CoA validation
+  remains the release gate.

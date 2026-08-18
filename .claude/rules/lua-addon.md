@@ -59,6 +59,7 @@ Formatting/naming conventions are in `lua-style.md` (3-space indent,
 
 ## Testing
 
-Manual: symlink `CoAArena/` into `Interface/AddOns/`, log in, queue an arena,
-verify capture. No Lua unit-test tooling. Run `luacheck` if installed
-(`.luacheckcache` is gitignored).
+Run `./scripts/check.sh` for Lua 5.1 syntax, `luacheck`, and whitespace checks.
+Runtime behaviour remains manual: symlink `CoAArena/` into `Interface/AddOns/`
+and follow `docs/manual-testing.md`. A small mocked smoke test covers the
+arena-log data flow; no Lua unit-test framework is used for v1.

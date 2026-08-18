@@ -63,10 +63,11 @@ Add a feature = a new `features/<domain>/` folder; no technical sub-layers.
 
 ## Testing
 
-Manual only: symlink `CoAArena/` into
-`World of Warcraft/Interface/AddOns/`, log in, queue an arena, verify capture.
-No Lua unit-test tooling. `luacheck` is welcome for static checks if installed
-(`.luacheckcache` is gitignored).
+Run `./scripts/check.sh` for Lua 5.1 syntax, `luacheck`, and whitespace checks.
+Runtime validation remains manual: symlink `CoAArena/` into
+`World of Warcraft/Interface/AddOns/` and follow
+[`docs/manual-testing.md`](docs/manual-testing.md). A small mocked smoke test
+covers the arena-log data flow; no Lua unit-test framework is used for v1.
 
 ## Git flow
 
