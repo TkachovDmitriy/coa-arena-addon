@@ -19,6 +19,8 @@ function ArenaSession:OnEnable()
    CoAArena:RegisterEvent("ZONE_CHANGED_NEW_AREA", self)
    CoAArena:RegisterEvent("UPDATE_BATTLEFIELD_SCORE", self)
    self.phase = "idle"
+   self.bg_test_enabled = false
+   self.last_test_match = nil
    self:UpdateZone()
 end
 
@@ -30,41 +32,59 @@ function ArenaSession:ZONE_CHANGED_NEW_AREA()
    self:UpdateZone()
 end
 
--- Transition detection: fire OnArenaStart/OnArenaEnd only on edges.
+-- Transition detection: real arenas always take precedence. Battlegrounds are
+-- accepted only while the explicit, runtime-only test mode is enabled.
 function ArenaSession:UpdateZone()
    local _, instance_type = IsInInstance()
-   local in_arena = instance_type == "arena"
+   local session_kind
+   if instance_type == "arena" then
+      session_kind = "arena"
+   elseif instance_type == "pvp" and self.bg_test_enabled then
+      session_kind = "bg_test"
+   end
 
-   if in_arena and self.phase == "idle" then
-      self:OnArenaStart()
-   elseif not in_arena and self.phase ~= "idle" then
-      self:OnArenaEnd()
+   if session_kind and self.phase == "idle" then
+      self:OnSessionStart(session_kind)
+   elseif self.phase ~= "idle" and session_kind ~= self.session_kind then
+      self:OnSessionEnd()
+      if session_kind then self:OnSessionStart(session_kind) end
    end
 end
 
-function ArenaSession:OnArenaStart()
-   local _, is_rated = IsActiveBattlefieldArena()
+function ArenaSession:OnSessionStart(session_kind)
+   local is_test = session_kind == "bg_test"
+   local _, is_rated
+   if not is_test then _, is_rated = IsActiveBattlefieldArena() end
+
    self.phase = "preparing"
+   self.session_kind = session_kind
    self.started_at = time()
    self.first_combat_at = nil
    self.zone = GetRealZoneText()
    self.is_rated = is_rated and true or false
-   util.Print(L["ARENA_ENTERED"])
+   util.Print(is_test and L["BG_TEST_STARTED"] or L["ARENA_ENTERED"])
    local capture = CoAArena:GetModule("OpponentCapture")
    if capture then capture:StartCapture() end
 end
 
-function ArenaSession:OnArenaEnd()
+function ArenaSession:OnSessionEnd()
    local capture = CoAArena:GetModule("OpponentCapture")
    local opponents = capture and capture:StopCapture()
 
    if self.phase ~= "complete" and (self.first_combat_at or (opponents and #opponents > 0)) then
-      store.AppendMatch(self:BuildMatch(opponents or {}, nil, nil, nil, false))
-      util.Print(L["MATCH_SAVED_INCOMPLETE"])
+      local match = self:BuildMatch(opponents or {}, nil, nil, nil, false)
+      if self.session_kind == "bg_test" then
+         self:RecordTestMatch(match)
+      else
+         store.AppendMatch(match)
+         util.Print(L["MATCH_SAVED_INCOMPLETE"])
+      end
    end
 
+   local was_test = self.session_kind == "bg_test"
    self.phase = "idle"
-   util.Print(L["ARENA_LEFT"])
+   self.session_kind = nil
+   util.Print(was_test and L["BG_TEST_STOPPED"] or L["ARENA_LEFT"])
 end
 
 function ArenaSession:OnCombatObserved()
@@ -111,7 +131,8 @@ function ArenaSession:BuildMatch(opponents, winner_team, player_team, player, is
       ended_at = time(),
       duration = math.floor((GetBattlefieldInstanceRunTime() or 0) / 1000),
       zone = self.zone,
-      is_arena = true,
+      is_arena = self.session_kind == "arena",
+      is_test = self.session_kind == "bg_test",
       is_rated = self.is_rated,
       is_complete = is_complete,
       result = result,
@@ -127,6 +148,15 @@ function ArenaSession:BuildMatch(opponents, winner_team, player_team, player, is
    }
 end
 
+function ArenaSession:RecordTestMatch(match)
+   self.last_test_match = match
+   util.Print(string.format(
+      L["BG_TEST_CAPTURED"],
+      L[string.upper(match.result)],
+      #match.opponents
+   ))
+end
+
 function ArenaSession:UPDATE_BATTLEFIELD_SCORE()
    if self.phase == "idle" or self.phase == "complete" then return end
 
@@ -139,11 +169,30 @@ function ArenaSession:UPDATE_BATTLEFIELD_SCORE()
    local opponents = capture and capture:StopCapture() or {}
 
    local match = self:BuildMatch(opponents, winner_team, player_team, player, true)
-   store.AppendMatch(match)
+   if self.session_kind == "bg_test" then
+      self:RecordTestMatch(match)
+   else
+      store.AppendMatch(match)
+      util.Print(string.format(L["MATCH_SAVED"], L[string.upper(match.result)]))
+   end
    self.phase = "complete"
-   util.Print(string.format(L["MATCH_SAVED"], L[string.upper(match.result)]))
 end
 
 function ArenaSession:GetDebugState()
-   return self.phase or "disabled"
+   local state = self.phase or "disabled"
+   if self.session_kind == "bg_test" then state = state .. "(bg-test)" end
+   return state
+end
+
+function ArenaSession:SetBgTestEnabled(enabled)
+   self.bg_test_enabled = enabled and true or false
+   self:UpdateZone()
+end
+
+function ArenaSession:IsBgTestEnabled()
+   return self.bg_test_enabled
+end
+
+function ArenaSession:GetLastTestMatch()
+   return self.last_test_match
 end

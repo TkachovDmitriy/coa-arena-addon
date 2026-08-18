@@ -3,7 +3,7 @@
 local registered_events = {}
 local event_script
 local messages = {}
-local in_arena = false
+local instance_type = "none"
 local winner_team
 
 local event_frame = {}
@@ -53,11 +53,11 @@ COMBATLOG_OBJECT_REACTION_HOSTILE = 2
 SlashCmdList = {}
 
 function IsInInstance()
-   return in_arena, in_arena and "arena" or "none"
+   return instance_type ~= "none", instance_type
 end
 
 function IsActiveBattlefieldArena()
-   return in_arena, true
+   return instance_type == "arena", true
 end
 
 function GetRealZoneText()
@@ -118,7 +118,7 @@ event_script(event_frame, "PLAYER_LOGIN")
 local session = namespace.addon:GetModule("ArenaSession")
 assert(session:GetDebugState() == "idle")
 
-in_arena = true
+instance_type = "arena"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
 assert(session:GetDebugState() == "preparing")
 assert(registered_events.COMBAT_LOG_EVENT_UNFILTERED)
@@ -154,19 +154,19 @@ assert(#matches[1].opponents == 1)
 assert(matches[1].opponents[1].guid == "enemy-guid")
 assert(matches[1].opponents[1].class_token == "SHAMAN")
 
-in_arena = false
+instance_type = "none"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
 assert(session:GetDebugState() == "idle")
 assert(#namespace.arena_log.store.GetMatches() == 1)
 
 winner_team = nil
-in_arena = true
+instance_type = "arena"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
-in_arena = false
+instance_type = "none"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
 assert(#namespace.arena_log.store.GetMatches() == 1)
 
-in_arena = true
+instance_type = "arena"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
 event_script(
    event_frame,
@@ -183,12 +183,49 @@ event_script(
    1,
    0
 )
-in_arena = false
+instance_type = "none"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
 assert(#namespace.arena_log.store.GetMatches() == 2)
 assert(namespace.arena_log.store.GetLatestMatch().id == 2)
 assert(namespace.arena_log.store.GetLatestMatch().result == "unknown")
 assert(not namespace.arena_log.store.GetLatestMatch().is_complete)
+
+-- Battleground test mode exercises capture without polluting arena history.
+instance_type = "pvp"
+event_script(event_frame, "PLAYER_ENTERING_WORLD")
+assert(session:GetDebugState() == "idle")
+SlashCmdList.COAARENA("testbg on")
+assert(session:GetDebugState() == "preparing(bg-test)")
+assert(registered_events.COMBAT_LOG_EVENT_UNFILTERED)
+
+event_script(
+   event_frame,
+   "COMBAT_LOG_EVENT_UNFILTERED",
+   0,
+   "SPELL_DAMAGE",
+   false,
+   "bg-enemy-guid",
+   "BattlegroundEnemy",
+   3,
+   0,
+   "player-guid",
+   "Player",
+   1,
+   0
+)
+assert(session:GetDebugState() == "active(bg-test)")
+
+winner_team = 0
+event_script(event_frame, "UPDATE_BATTLEFIELD_SCORE")
+assert(session:GetDebugState() == "complete(bg-test)")
+assert(#namespace.arena_log.store.GetMatches() == 2)
+assert(session:GetLastTestMatch().is_test)
+assert(not session:GetLastTestMatch().is_arena)
+assert(#session:GetLastTestMatch().opponents == 2)
+
+SlashCmdList.COAARENA("testbg off")
+assert(session:GetDebugState() == "idle")
+assert(#namespace.arena_log.store.GetMatches() == 2)
 
 SlashCmdList.COAARENA("debug")
 assert(#messages > 0)

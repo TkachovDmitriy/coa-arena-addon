@@ -35,3 +35,22 @@ API has the same name.
 
 Record any CoA-specific differences in event order or API return values before
 changing the persistence schema.
+
+## Battleground test mode
+
+Use this when an arena-ready character is unavailable. It exercises the same
+combat-log and scoreboard capture pipeline but never writes the result to arena
+history or SavedVariables.
+
+1. Enter a battleground and run `/coaarena testbg on`.
+2. Expect `BG test capture started` and `state=preparing(bg-test)` from
+   `/coaarena debug`.
+3. Engage a hostile player and expect `state=active(bg-test)`.
+4. At the final scoreboard, expect `BG test captured`, including the result and
+   opponent count. Arena `matches` must not increase.
+5. Run `/coaarena testbg off` when finished. The mode is runtime-only and also
+   resets to disabled on `/reload`.
+
+BG testing does not validate arena instance detection, arena-specific team and
+rating APIs, or CoA's arena event order. Complete the arena checklist above
+before release.

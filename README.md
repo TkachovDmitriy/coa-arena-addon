@@ -11,6 +11,7 @@ later phase.
 - Stores win/loss and rated-team rating changes per character
 - Shows the ten most recent matches with `/coaarena`
 - Reports capture state with `/coaarena debug`
+- Supports a non-persistent BG capture test with `/coaarena testbg on`
 
 Gear/talent inspection and enemy cooldown indicators remain planned work. See
 the [roadmap](docs/addon-plan.md) for scope and known API constraints. The

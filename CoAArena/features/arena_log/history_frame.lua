@@ -95,14 +95,29 @@ end
 
 function HistoryFrame:HandleCommand(message)
    local command = string.lower(message or "")
+   local test_setting = string.match(command, "^testbg%s+(%S+)$")
+   if command == "testbg" or string.match(command, "^testbg%s+") then
+      local session = CoAArena:GetModule("ArenaSession")
+      if test_setting == "on" or test_setting == "off" then
+         session:SetBgTestEnabled(test_setting == "on")
+      end
+      util.Print(string.format(
+         L["BG_TEST_STATUS"],
+         session:IsBgTestEnabled() and L["ENABLED"] or L["DISABLED"]
+      ))
+      return
+   end
+
    if command == "debug" then
       local session = CoAArena:GetModule("ArenaSession")
       local latest = store.GetLatestMatch()
+      local last_test = session and session:GetLastTestMatch()
       util.Print(string.format(
          L["DEBUG_STATE"],
          session and session:GetDebugState() or "missing",
          #store.GetMatches(),
-         latest and latest.id or 0
+         latest and latest.id or 0,
+         last_test and #last_test.opponents or 0
       ))
       return
    end
