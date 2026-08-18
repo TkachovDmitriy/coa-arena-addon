@@ -2,6 +2,9 @@
 
 Guidance for Claude Code (claude.ai/code) when working in this repository.
 
+Detailed, self-contained rules live in `.claude/rules/`
+(`git-flow.md`, `lua-addon.md`); this file is the high-level overview.
+
 ## What this is
 
 A World of Warcraft **3.3.5 (WotLK)** companion addon for the Conquest of
@@ -52,11 +55,19 @@ No Lua unit-test tooling. `luacheck` is welcome for static checks if installed
 
 ## Git flow
 
-- Never commit directly to the default branch (`main`). Work on short-lived
-  `feat/*` or `fix/*` branches and open a PR.
-- **Conventional Commits**, concise one-line subjects: `feat:`, `fix:`,
-  `docs:`, `chore:`.
-- **No `Co-Authored-By` trailer** on commits.
-- Releases are git tags (semver) → zipped GitHub Release of the `CoAArena/`
-  folder (see `docs/addon-plan.md`, Phase 2). No CurseForge/WowInterface —
-  they don't accept private-server addons.
+[`.claude/rules/git-flow.md`](.claude/rules/git-flow.md) is the general org
+playbook (GitLab / Jira / `develop`). **This repo is simpler**, and these
+overrides win here:
+
+- **GitHub, `main` only** — no `develop` integration branch. Short-lived
+  `feat/*` / `fix/*` branches → PR into `main`.
+- **Conventional Commits** subjects (`feat:`, `fix:`, `docs:`, `chore:`) — no
+  Jira keys / bracketed prefixes (there is no Jira here).
+- Never commit to `main` directly; no `Co-Authored-By` trailer.
+
+Everything else in the playbook (branch-per-change, one logical change per PR,
+don't rewrite shared history) still applies.
+
+Addon-specific: **releases** are semver git tags → a zipped GitHub Release of
+the `CoAArena/` folder (see `docs/addon-plan.md`, Phase 2). No
+CurseForge/WowInterface — they don't accept private-server addons.
