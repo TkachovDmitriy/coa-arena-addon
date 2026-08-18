@@ -96,6 +96,13 @@ removed; its former target was only renamed, not deleted. Because WoW discovers
 addon folders at startup, fully restart the client before testing the renamed
 addon rather than relying only on `/reload`.
 
+The same rule applies when a new Lua file is added to the `.toc`. During the
+minimap-launcher test, the already loaded history and diagnostic UI remained
+available, but `/reload` logged `features\launcher\minimap_button.lua` in
+`Logs/MissingFiles.txt` and reported the failed file in `Logs/FrameXML.log`.
+Fully restart the CoA client before diagnosing the module itself; seeing the
+rest of the addon UI only confirms that the addon loaded partially.
+
 Quote the complete paths in shell commands because `Program Files` and
 `Ascension Launcher` contain spaces. A stray self-referencing symlink named
 `\` was accidentally created while copying a multiline command and was removed

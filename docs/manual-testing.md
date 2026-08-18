@@ -13,6 +13,12 @@ API has the same name.
 4. Verify the arena icon appears at the bottom-left of the minimap. Left-click it
    to open recent matches and right-click it to open the diagnostic log.
 
+When testing a newly added Lua file, fully exit and restart the CoA client.
+`/reload` can reload the addon's existing UI while the new file still fails to
+open and is recorded in `Logs/MissingFiles.txt`; the presence of other addon UI
+therefore does not prove every file listed in the `.toc` was loaded. Check
+`Logs/FrameXML.log` for the exact file when a newly added module is missing.
+
 ## Match capture
 
 1. Enter an arena. Expect `Arena entered — preparing match capture.`
