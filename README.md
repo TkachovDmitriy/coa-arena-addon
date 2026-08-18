@@ -26,6 +26,10 @@ the [roadmap](docs/addon-plan.md) for scope and known API constraints. The
 current vertical slice passes mocked Lua 5.1 checks but still requires the
 documented live validation on CoA before its first release.
 
+Want to try the early version? Read the
+[community testing invitation](docs/community-testing-call.md) to learn what
+the addon does, what is still unfinished, and how a short arena test can help.
+
 ## Installation
 
 1. Download a source archive (or the latest release once one is published).
