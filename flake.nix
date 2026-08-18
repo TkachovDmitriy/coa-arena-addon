@@ -26,6 +26,7 @@
               lua5_1
               luajitPackages.luacheck
               ripgrep
+              zip
             ];
 
             LUA_COMPILER = "${pkgs.lua5_1}/bin/luac";

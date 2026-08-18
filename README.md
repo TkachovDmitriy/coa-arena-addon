@@ -32,10 +32,12 @@ the addon does, what is still unfinished, and how a short arena test can help.
 
 ## Installation
 
-1. Download a source archive (or the latest release once one is published).
-2. Copy the `TDArenaLens/` folder into `World of Warcraft/Interface/AddOns/`.
-3. Make sure the folder is named `TDArenaLens` (without suffixes like `-master`).
-4. Restart the game or run `/reload`.
+Download the release ZIP, extract it into `World of Warcraft/Interface/AddOns/`,
+and fully restart the game. The resulting addon path must be
+`Interface/AddOns/TDArenaLens/TDArenaLens.toc`.
+
+See the [installation and test guide](docs/installation.md) for step-by-step
+instructions, verification, updating, and removal.
 
 ## Development
 
@@ -81,6 +83,15 @@ GitHub Actions runs the same syntax, static-analysis, smoke-test, and
 whitespace checks. Arena behaviour still requires the
 [manual CoA checklist](docs/manual-testing.md). The persisted record shape is
 documented in [docs/match-schema.md](docs/match-schema.md).
+
+Build a release archive whose root folder is ready to copy into `AddOns`:
+
+```sh
+./scripts/package-release.sh
+```
+
+The archive is written to `dist/` and its version is read from the addon's
+`.toc` manifest.
 
 ### Local development
 

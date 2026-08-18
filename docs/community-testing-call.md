@@ -80,4 +80,3 @@ If a local, in-game arena match history sounds useful and you are comfortable
 trying an early version, I would appreciate your help. Your test results will
 determine whether the capture system is reliable enough for a public release
 and which features should be built next.
-
