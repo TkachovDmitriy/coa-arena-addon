@@ -31,6 +31,7 @@ Implemented modules:
 - `history_frame.lua`: recent-match history UI only.
 - `log_frame.lua`: copyable runtime diagnostics plus command/version/author UI.
 - `slash_commands.lua`: parsing and delegation for `/tdlens` and `/coaarena`.
+- `minimap_button.lua`: click entry point for history and diagnostic views.
 
 Gear/talent inspection, cooldown tracking, and a richer history UI remain
 future work. Live skirmish and rated-arena validation is still a release gate.
@@ -71,7 +72,7 @@ nix develop
 ```
 
 The last full `nix develop -c ./scripts/check.sh` run after all follow-up fixes
-and the TD ArenaLens rename passed with 0 warnings and 0 errors in 12 Lua
+and the TD ArenaLens rename passed with 0 warnings and 0 errors in 13 Lua
 files; the smoke test also passed. Do not run Lua checks after every small edit;
 the agreed workflow is one full check after the change is complete, before
 committing. Documentation-only edits need only `git diff --check`.

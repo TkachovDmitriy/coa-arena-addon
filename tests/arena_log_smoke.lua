@@ -5,6 +5,7 @@ local event_script
 local messages = {}
 local instance_type = "none"
 local winner_team
+local create_frame_count = 0
 
 local event_frame = {}
 
@@ -20,8 +21,29 @@ function event_frame:SetScript(script, handler)
    if script == "OnEvent" then event_script = handler end
 end
 
+local function new_ui_object()
+   local object = { scripts = {} }
+   setmetatable(object, {
+      __index = function(_, method)
+         if method == "CreateTexture" or method == "CreateFontString" then
+            return function() return new_ui_object() end
+         elseif method == "GetFrameLevel" then
+            return function() return 1 end
+         elseif method == "IsShown" then
+            return function() return false end
+         elseif method == "SetScript" then
+            return function(_, script, handler) object.scripts[script] = handler end
+         end
+         return function() end
+      end,
+   })
+   return object
+end
+
 function CreateFrame()
-   return event_frame
+   create_frame_count = create_frame_count + 1
+   if create_frame_count == 1 then return event_frame end
+   return new_ui_object()
 end
 
 function GetAddOnMetadata()
@@ -33,6 +55,11 @@ DEFAULT_CHAT_FRAME = {
       table.insert(messages, message)
    end,
 }
+
+ChatFontNormal = {}
+UIParent = new_ui_object()
+Minimap = new_ui_object()
+GameTooltip = new_ui_object()
 
 bit = {
    band = function(left, right)
@@ -113,6 +140,7 @@ load_addon_file("TDArenaLens/features/arena_log/arena_session.lua")
 load_addon_file("TDArenaLens/features/arena_log/history_frame.lua")
 load_addon_file("TDArenaLens/features/diagnostics/log_frame.lua")
 load_addon_file("TDArenaLens/features/commands/slash_commands.lua")
+load_addon_file("TDArenaLens/features/launcher/minimap_button.lua")
 
 event_script(event_frame, "ADDON_LOADED", "TDArenaLens")
 event_script(event_frame, "PLAYER_LOGIN")
@@ -125,6 +153,14 @@ local session = namespace.addon:GetModule("ArenaSession")
 assert(session:GetDebugState() == "idle")
 assert(namespace.addon:GetModule("DiagnosticLogFrame"))
 assert(namespace.addon:GetModule("SlashCommands"))
+local minimap_button = namespace.addon:GetModule("MinimapButton").button
+assert(minimap_button)
+minimap_button.scripts.OnClick(minimap_button, "LeftButton")
+assert(namespace.addon:GetModule("HistoryFrame").frame)
+minimap_button.scripts.OnClick(minimap_button, "RightButton")
+assert(namespace.addon:GetModule("DiagnosticLogFrame").frame)
+minimap_button.scripts.OnEnter(minimap_button)
+minimap_button.scripts.OnLeave(minimap_button)
 
 instance_type = "arena"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")

@@ -10,6 +10,8 @@ API has the same name.
 2. Enable Lua errors with `/console scriptErrors 1` and run `/reload`.
 3. Run `/tdlens debug`; expect `state=idle, matches=0, latest=#0` on a clean
    character database.
+4. Verify the arena icon appears at the bottom-left of the minimap. Left-click it
+   to open recent matches and right-click it to open the diagnostic log.
 
 ## Match capture
 

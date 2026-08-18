@@ -30,3 +30,5 @@ L["COMMAND_LIST"] = "/tdlens — recent matches\n/tdlens log — copyable diagno
 L["DIAGNOSTIC_LOG_HINT"] = "Select all, then press Ctrl+C to copy. Logs reset on /reload."
 L["SELECT_ALL"] = "Select All"
 L["CLEAR"] = "Clear"
+L["MINIMAP_LEFT_CLICK"] = "Left-click: open recent matches"
+L["MINIMAP_RIGHT_CLICK"] = "Right-click: open diagnostic log"

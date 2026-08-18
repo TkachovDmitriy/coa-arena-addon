@@ -12,6 +12,7 @@ later phase.
 - Shows the ten most recent matches with `/tdlens`
 - Reports capture state with `/tdlens debug`
 - Keeps a copyable runtime diagnostic log in `/tdlens log`
+- Opens history with a minimap button (right-click opens diagnostics)
 - Supports a non-persistent BG capture test with `/tdlens testbg on`
 
 The legacy `/coaarena` command remains available as an alias.

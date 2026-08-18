@@ -26,6 +26,9 @@ features\diagnostics\log_frame.lua
 # feature: commands
 features\commands\slash_commands.lua
 
+# feature: launcher
+features\launcher\minimap_button.lua
+
 # feature: cooldowns
 features\cooldowns\tracker.lua
 features\cooldowns\icons.lua
