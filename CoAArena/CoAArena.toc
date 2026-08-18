@@ -1,0 +1,14 @@
+## Interface: 30300
+## Title: CoA Arena
+## Notes: Arena companion — logs matches, opponents and cooldowns.
+## Author: TkachovDmitriy
+## Version: 0.1.0-dev
+## SavedVariables: CoAArenaDB
+## SavedVariablesPerCharacter: CoAArenaCharDB
+
+# Load order matters: locales, then core bootstrap, then feature modules.
+Locales\enUS.lua
+
+Core.lua
+
+Modules\ArenaSession.lua
