@@ -1,20 +1,25 @@
 # CoA Arena Addon
 
-A World of Warcraft companion addon that improves the arena (PvP) experience:
-tracks opponents, cooldowns, and other useful in-combat information.
+A World of Warcraft companion addon for the Conquest of Azeroth arena scene.
+It records match history and opponents, with cooldown tracking planned for a
+later phase.
 
-## Features
+## Development status
 
-- Opponent tracking in arena matches
-- Cooldown indicators for key abilities
-- Configurable interface
+- Detects arena sessions and records completed matches
+- Captures opponent identity and final scoreboard statistics
+- Stores win/loss and rated-team rating changes per character
+- Shows the ten most recent matches with `/coaarena`
+- Reports capture state with `/coaarena debug`
 
-> Feature set is refined as development progresses.
-> Detailed roadmap: [docs/addon-plan.md](docs/addon-plan.md).
+Gear/talent inspection and enemy cooldown indicators remain planned work. See
+the [roadmap](docs/addon-plan.md) for scope and known API constraints. The
+current vertical slice passes mocked Lua 5.1 checks but still requires the
+documented live validation on CoA before its first release.
 
 ## Installation
 
-1. Download the latest release.
+1. Download a source archive (or the latest release once one is published).
 2. Copy the `CoAArena/` folder into `World of Warcraft/Interface/AddOns/`.
 3. Make sure the folder is named `CoAArena` (without suffixes like `-master`).
 4. Restart the game or run `/reload`.
@@ -44,7 +49,21 @@ The `CoAArena/` folder and `CoAArena.toc` must share that exact name (a WoW
 requirement); everything else is lowercase `snake_case`. Folders are optional
 to WoW (files load only via the `.toc`) — the layout is for humans.
 
-Conventions and git-flow notes live in [CLAUDE.md](CLAUDE.md).
+Repository conventions are enforced by `.editorconfig`, `.luacheckrc`, and the
+quality workflow.
+
+### Quality checks
+
+The checks require Lua 5.1, `luacheck`, and `rg`:
+
+```sh
+./scripts/check.sh
+```
+
+GitHub Actions runs the same syntax, static-analysis, smoke-test, and
+whitespace checks. Arena behaviour still requires the
+[manual CoA checklist](docs/manual-testing.md). The persisted record shape is
+documented in [docs/match-schema.md](docs/match-schema.md).
 
 ### Local development
 
@@ -57,4 +76,4 @@ ln -s "$(pwd)/CoAArena" "/path/to/World of Warcraft/Interface/AddOns/CoAArena"
 
 ## License
 
-See [LICENSE](LICENSE) (to be added).
+[MIT](LICENSE)

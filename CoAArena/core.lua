@@ -13,6 +13,8 @@ _G.CoAArena = CoAArena -- also exposed globally for /commands and debugging
 CoAArena.name = ADDON_NAME
 CoAArena.version = GetAddOnMetadata(ADDON_NAME, "Version")
 CoAArena.modules = CoAArena.modules or {}
+CoAArena.module_order = CoAArena.module_order or {}
+CoAArena.event_modules = CoAArena.event_modules or {}
 
 -- Module registry -----------------------------------------------------------
 -- A "module" is just a table with optional `OnEnable` and event-named methods
@@ -22,6 +24,7 @@ function CoAArena:NewModule(name)
    assert(not self.modules[name], "CoAArena: module already registered: " .. tostring(name))
    local module = { name = name }
    self.modules[name] = module
+   table.insert(self.module_order, module)
    return module
 end
 
@@ -35,8 +38,28 @@ end
 local frame = CreateFrame("Frame")
 CoAArena.frame = frame
 
-function CoAArena:RegisterEvent(event)
-   frame:RegisterEvent(event)
+function CoAArena:RegisterEvent(event, module)
+   assert(type(event) == "string", "CoAArena: event must be a string")
+   assert(type(module) == "table", "CoAArena: event owner must be a module")
+
+   local subscribers = self.event_modules[event]
+   if not subscribers then
+      subscribers = {}
+      self.event_modules[event] = subscribers
+      frame:RegisterEvent(event)
+   end
+   subscribers[module] = true
+end
+
+function CoAArena:UnregisterEvent(event, module)
+   local subscribers = self.event_modules[event]
+   if not subscribers then return end
+
+   subscribers[module] = nil
+   if next(subscribers) then return end
+
+   self.event_modules[event] = nil
+   frame:UnregisterEvent(event)
 end
 
 frame:RegisterEvent("ADDON_LOADED")
@@ -55,15 +78,20 @@ frame:SetScript("OnEvent", function(_, event, ...)
    end
 
    if event == "PLAYER_LOGIN" then
-      for _, module in pairs(CoAArena.modules) do
+      for _, module in ipairs(CoAArena.module_order) do
          if module.OnEnable then module:OnEnable() end
       end
    end
 
-   -- Fan every registered event out to any module declaring a same-named
-   -- handler method.
-   for _, module in pairs(CoAArena.modules) do
-      local handler = module[event]
-      if handler then handler(module, ...) end
+   local subscribers = CoAArena.event_modules[event]
+   if not subscribers then return end
+
+   -- Use module load order for deterministic dispatch when multiple modules
+   -- subscribe to the same event.
+   for _, module in ipairs(CoAArena.module_order) do
+      if subscribers[module] then
+         local handler = module[event]
+         if handler then handler(module, ...) end
+      end
    end
 end)

@@ -21,6 +21,10 @@ Thumbs.db
 .vscode/
 *.code-workspace
 
+# Local AI assistant instructions
+CLAUDE.md
+.claude/
+
 # --- Logs / temp ---
 *.log
 tmp/
