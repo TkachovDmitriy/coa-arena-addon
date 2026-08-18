@@ -30,6 +30,8 @@ Implemented modules:
 - `store.lua`: schema v1, match IDs, append/read/latest operations.
 - `history_frame.lua`: recent-match history UI only.
 - `log_frame.lua`: copyable runtime diagnostics plus command/version/author UI.
+- `reporting.lua`: shared debug, BG export, and latest-arena report generation.
+- `action_bar.lua`: diagnostic-window buttons that delegate to reporting.
 - `slash_commands.lua`: parsing and delegation for `/tdlens` and `/coaarena`.
 - `minimap_button.lua`: click entry point for history and diagnostic views.
 
@@ -72,7 +74,7 @@ nix develop
 ```
 
 The last full `nix develop -c ./scripts/check.sh` run after all follow-up fixes
-and the TD ArenaLens rename passed with 0 warnings and 0 errors in 13 Lua
+and the TD ArenaLens rename passed with 0 warnings and 0 errors in 15 Lua
 files; the smoke test also passed. Do not run Lua checks after every small edit;
 the agreed workflow is one full check after the change is complete, before
 committing. Documentation-only edits need only `git diff --check`.

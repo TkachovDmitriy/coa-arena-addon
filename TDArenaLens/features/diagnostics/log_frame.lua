@@ -4,6 +4,7 @@ local ADDON_NAME, ns = ...
 local TDArenaLens = ns.addon
 local L = ns.L
 local util = ns.util
+local action_bar = ns.diagnostics.action_bar
 
 local DiagnosticLogFrame = TDArenaLens:NewModule("DiagnosticLogFrame")
 
@@ -32,7 +33,7 @@ end
 function DiagnosticLogFrame:CreateFrame()
    local frame = CreateFrame("Frame", "TDArenaLensDiagnosticLogFrame", UIParent)
    frame:SetWidth(680)
-   frame:SetHeight(470)
+   frame:SetHeight(500)
    frame:SetPoint("CENTER")
    frame:SetFrameStrata("DIALOG")
    frame:SetMovable(true)
@@ -69,12 +70,12 @@ function DiagnosticLogFrame:CreateFrame()
    commands:SetText(L["COMMAND_LIST"])
 
    local hint = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-   hint:SetPoint("TOPLEFT", 24, -142)
+   hint:SetPoint("TOPLEFT", 24, -154)
    hint:SetText(L["DIAGNOSTIC_LOG_HINT"])
 
    local scroll = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
-   scroll:SetPoint("TOPLEFT", 24, -166)
-   scroll:SetPoint("BOTTOMRIGHT", -46, 58)
+   scroll:SetPoint("TOPLEFT", 24, -178)
+   scroll:SetPoint("BOTTOMRIGHT", -46, 90)
 
    local edit = CreateFrame("EditBox", nil, scroll)
    edit:SetMultiLine(true)
@@ -102,6 +103,8 @@ function DiagnosticLogFrame:CreateFrame()
    clear:SetPoint("LEFT", select_all, "RIGHT", 8, 0)
    clear:SetText(L["CLEAR"])
    clear:SetScript("OnClick", function() util.ClearLog() end)
+
+   frame.actions = action_bar.Create(frame)
 
    local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
    close:SetPoint("TOPRIGHT", -5, -5)

@@ -63,9 +63,15 @@ history or SavedVariables.
    that `|result` is visible, names are player names rather than numeric flags
    or spell names, and exporting does not increase arena `matches`. Open
    `/tdlens log`, click `Select All`, and press Ctrl+C to copy the same line
-   without selecting it from chat.
+   without selecting it from chat. The `Status`, `BG Start`, `BG Stop`, and
+   `BG Export` buttons must perform the same actions as their slash commands.
 6. Run `/tdlens testbg off` when finished. The mode is runtime-only and also
    resets to disabled on `/reload`.
+
+Real arenas start and stop automatically; they intentionally have no manual
+start/stop buttons. In `/tdlens log`, use `Arena Export` (or run
+`/tdlens arena export`) to append the latest saved arena record to the copyable
+diagnostic text.
 
 BG testing does not validate arena instance detection, arena-specific team and
 rating APIs, or CoA's arena event order. Complete the arena checklist above

@@ -12,6 +12,7 @@ later phase.
 - Shows the ten most recent matches with `/tdlens`
 - Reports capture state with `/tdlens debug`
 - Keeps a copyable runtime diagnostic log in `/tdlens log`
+- Provides one-click status, BG controls, and arena/BG exports in that log
 - Opens history with a minimap button (right-click opens diagnostics)
 - Supports a non-persistent BG capture test with `/tdlens testbg on`
 

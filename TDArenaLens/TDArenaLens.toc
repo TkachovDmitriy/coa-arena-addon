@@ -21,6 +21,8 @@ features\arena_log\arena_session.lua
 features\arena_log\history_frame.lua
 
 # feature: diagnostics
+features\diagnostics\reporting.lua
+features\diagnostics\action_bar.lua
 features\diagnostics\log_frame.lua
 
 # feature: commands
