@@ -166,6 +166,12 @@ assert(namespace.addon:GetModule("DiagnosticLogFrame").frame.actions)
 minimap_button.scripts.OnEnter(minimap_button)
 minimap_button.scripts.OnLeave(minimap_button)
 
+local diagnostic_module = namespace.addon.modules.DiagnosticLogFrame
+namespace.addon.modules.DiagnosticLogFrame = nil
+minimap_button.scripts.OnClick(minimap_button, "RightButton")
+assert(string.find(messages[#messages], "DiagnosticLogFrame is unavailable", 1, true))
+namespace.addon.modules.DiagnosticLogFrame = diagnostic_module
+
 instance_type = "arena"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
 assert(session:GetDebugState() == "preparing")

@@ -4,8 +4,18 @@
 local ADDON_NAME, ns = ...
 local TDArenaLens = ns.addon
 local L = ns.L
+local util = ns.util
 
 local MinimapButton = TDArenaLens:NewModule("MinimapButton")
+
+local function toggle_module(module_name)
+   local module = TDArenaLens:GetModule(module_name)
+   if module and module.Toggle then
+      module:Toggle()
+   else
+      util.Print(string.format(L["MODULE_UNAVAILABLE"], module_name))
+   end
+end
 
 function MinimapButton:OnEnable()
    self:CreateButton()
@@ -34,9 +44,9 @@ function MinimapButton:CreateButton()
    button:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
    button:SetScript("OnClick", function(_, mouse_button)
       if mouse_button == "RightButton" then
-         TDArenaLens:GetModule("DiagnosticLogFrame"):Toggle()
+         toggle_module("DiagnosticLogFrame")
       else
-         TDArenaLens:GetModule("HistoryFrame"):Toggle()
+         toggle_module("HistoryFrame")
       end
    end)
    button:SetScript("OnEnter", function(current)

@@ -104,6 +104,8 @@ available, but `/reload` logged `features\launcher\minimap_button.lua` in
 `Logs/MissingFiles.txt` and reported the failed file in `Logs/FrameXML.log`.
 Fully restart the CoA client before diagnosing the module itself; seeing the
 rest of the addon UI only confirms that the addon loaded partially.
+The minimap launcher now guards missing target modules and prints a restart
+instruction instead of raising a Lua error when the addon loaded partially.
 
 Quote the complete paths in shell commands because `Program Files` and
 `Ascension Launcher` contain spaces. A stray self-referencing symlink named
