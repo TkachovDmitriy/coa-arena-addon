@@ -54,11 +54,15 @@ quality workflow.
 
 ### Quality checks
 
-The checks require Lua 5.1, `luacheck`, and `rg`:
+Enter the reproducible development shell, then run the checks:
 
 ```sh
+nix develop
 ./scripts/check.sh
 ```
+
+The shell provides Lua 5.1, `luac`, `luacheck`, `rg`, and Git. Their Nixpkgs
+revision is pinned in `flake.lock`; nothing needs to be installed globally.
 
 GitHub Actions runs the same syntax, static-analysis, smoke-test, and
 whitespace checks. Arena behaviour still requires the
