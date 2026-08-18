@@ -12,12 +12,30 @@ Formatting/naming conventions are in `lua-style.md` (3-space indent,
   repo root holds docs and meta only.
 - The addon folder and its `.toc` **must** share the exact addon name
   (`CoAArena/CoAArena.toc`) — a WoW requirement. Everything else is
-  `snake_case` (`core.lua`, `modules/arena_session.lua`).
-- **Subfolders are optional** — WoW imposes no layout; files are found only via
-  the `.toc`. Keep a small addon flat if you like; group into
-  `modules/`/`locales/`/`ui/`/`media/` as it grows.
-- **Explicit load order in `CoAArena.toc`** — locales → `core.lua` → modules.
-  There is no autoloader; every new file must be added to the `.toc`.
+  `snake_case` (`core.lua`, `features/arena_log/store.lua`).
+- **Feature-based (DDD-lite) layout.** Group by *domain*, not by file type —
+  everything for one feature (logic, its UI, its persistence) lives together:
+  ```
+  CoAArena/
+     core.lua                 # bootstrap + module registry (thin)
+     shared/                  # cross-domain, domain-agnostic helpers
+     features/<domain>/       # one folder per feature
+     locales/                 # en_us.lua base locale (cross-domain)
+  ```
+  Current domains: `arena_log` (session detection, opponent capture, store,
+  history UI) and `cooldowns`. Add a new feature = a new `features/<domain>/`
+  folder; don't reach for technical sub-layers (`api`/`application`/…) — Lua
+  3.3.5 has no module system to make them meaningful.
+- **Folders are still optional to WoW** — files are found only via the `.toc`.
+  The layout is for humans; a tiny addon could be flat.
+- **Explicit load order in `CoAArena.toc`** — locales → `core.lua` → `shared/`
+  → feature domains. Within a domain, load the data/`store` before the modules
+  that use it. There is no autoloader; every new file must be added to the
+  `.toc`.
+- **Cross-file wiring:** data/helpers hang off `ns` (`ns.util`,
+  `ns.arena_log.store`); event-reactive things are modules
+  (`CoAArena:NewModule`) and find siblings at runtime via
+  `CoAArena:GetModule(name)`.
 
 ## Code conventions
 

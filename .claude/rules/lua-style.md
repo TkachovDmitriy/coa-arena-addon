@@ -53,9 +53,9 @@ under **WoW deviations** below.
   name — `CoAArena/CoAArena.toc` (a WoW client requirement, not a style
   choice).
 - **Subfolders are optional.** WoW imposes no directory layout; every file is
-  found only because it's listed in the `.toc`. `modules/`, `locales/`, `ui/`,
-  `media/` are organizational — a small addon may keep files flat in
-  `CoAArena/`. Group into folders as it grows.
+  found only because it's listed in the `.toc`. The layout is
+  **feature-based** (`features/<domain>/`, plus `shared/` and `locales/`) —
+  group by domain, not file type. See `lua-addon.md` for the structure.
 
 ## Strings, tables, values
 

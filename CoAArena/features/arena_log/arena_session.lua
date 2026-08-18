@@ -1,8 +1,10 @@
--- arena_session — detect entering/leaving an arena so match logging only runs
--- inside actual arena instances (see docs/addon-plan.md, Phase 1).
+-- arena_log :: arena_session — detects entering/leaving an arena and drives the
+-- rest of the domain (opponent capture, persistence). See docs/addon-plan.md,
+-- Phase 1.
 local ADDON_NAME, ns = ...
 local CoAArena = ns.addon
 local L = ns.L
+local util = ns.util
 
 local ArenaSession = CoAArena:NewModule("ArenaSession")
 
@@ -35,12 +37,15 @@ function ArenaSession:UpdateZone()
 end
 
 function ArenaSession:OnArenaStart()
-   -- TODO(phase1): begin buffering opponent capture via
-   -- COMBAT_LOG_EVENT_UNFILTERED + NotifyInspect/INSPECT_READY.
-   DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99CoA Arena|r: " .. L["ARENA_ENTERED"])
+   util.Print(L["ARENA_ENTERED"])
+   local capture = CoAArena:GetModule("OpponentCapture")
+   if capture then capture:StartCapture() end
 end
 
 function ArenaSession:OnArenaEnd()
-   -- TODO(phase1): flush the match summary into CoAArenaCharDB.
-   DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99CoA Arena|r: " .. L["ARENA_LEFT"])
+   util.Print(L["ARENA_LEFT"])
+   local capture = CoAArena:GetModule("OpponentCapture")
+   local opponents = capture and capture:StopCapture()
+   -- TODO(phase1): build a match record from `opponents` + arena UI result /
+   -- rating delta, then ns.arena_log.store.AppendMatch(match).
 end

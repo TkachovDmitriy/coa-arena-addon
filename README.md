@@ -25,21 +25,24 @@ The addon targets WoW **3.3.5 (WotLK)** and is written in pure Lua — no build
 step. The addon itself lives in the `CoAArena/` folder; the repo root holds
 docs and meta.
 
+The layout is **feature-based** — grouped by domain, not by file type:
+
 ```
-coa-arena-addon/          # repo root
-├── docs/                 # planning / design notes
-└── CoAArena/             # the addon — symlink THIS into AddOns/
-    ├── CoAArena.toc      # manifest (interface 30300, files in load order)
-    ├── core.lua          # bootstrap: namespace, module registry, events
-    ├── locales/          # en_us.lua base locale
-    ├── modules/          # one file per feature (e.g. arena_session.lua)
-    ├── ui/               # frame definitions
-    └── media/            # textures / fonts / sounds
+coa-arena-addon/                  # repo root
+├── docs/                         # planning / design notes
+└── CoAArena/                     # the addon — symlink THIS into AddOns/
+    ├── CoAArena.toc              # manifest (interface 30300, load order)
+    ├── core.lua                  # bootstrap: namespace, registry, events
+    ├── shared/                   # cross-domain helpers
+    ├── features/                 # one folder per domain
+    │   ├── arena_log/            #   session, opponent capture, store, UI
+    │   └── cooldowns/            #   tracker, icons
+    └── locales/                  # en_us.lua base locale
 ```
 
 The `CoAArena/` folder and `CoAArena.toc` must share that exact name (a WoW
-requirement); everything else is lowercase `snake_case`. Subfolders are
-optional — files load only via the `.toc`.
+requirement); everything else is lowercase `snake_case`. Folders are optional
+to WoW (files load only via the `.toc`) — the layout is for humans.
 
 Conventions and git-flow notes live in [CLAUDE.md](CLAUDE.md).
 

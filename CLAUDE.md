@@ -17,22 +17,25 @@ See `docs/addon-plan.md` for the phased roadmap.
 
 ## Layout
 
+**Feature-based (DDD-lite)** — group by domain, not file type:
+
 ```
-coa-arena-addon/            # repo root (docs, CI, meta)
-├── docs/                   # planning / design notes
-└── CoAArena/               # the actual addon — symlink THIS into AddOns/
-    ├── CoAArena.toc        # manifest: interface 30300, files in load order
-    ├── core.lua            # bootstrap: namespace, module registry, events
-    ├── locales/            # en_us.lua is the base locale
-    ├── modules/            # one file per feature (e.g. arena_session.lua)
-    ├── ui/                 # frame definitions
-    └── media/              # textures / fonts / sounds
+coa-arena-addon/                      # repo root (docs, CI, meta)
+├── docs/                             # planning / design notes
+└── CoAArena/                         # the addon — symlink THIS into AddOns/
+    ├── CoAArena.toc                  # manifest: interface 30300, load order
+    ├── core.lua                      # bootstrap: namespace, registry, events
+    ├── shared/                       # cross-domain helpers (ns.util, …)
+    ├── features/                     # one folder per domain
+    │   ├── arena_log/                #   session, opponent capture, store, UI
+    │   └── cooldowns/                #   tracker, icons
+    └── locales/                      # en_us.lua base locale
 ```
 
 The `CoAArena/` folder + `CoAArena.toc` must share that exact name (WoW
-requirement); every other file/folder is lowercase `snake_case`. Subfolders
-are optional — files are found only via the `.toc`, so a small addon may stay
-flat.
+requirement); every other file/folder is lowercase `snake_case`. Folders are
+optional to WoW (files load only via the `.toc`) — the layout is for humans.
+Add a feature = a new `features/<domain>/` folder; no technical sub-layers.
 
 ## Addon conventions
 
@@ -44,8 +47,12 @@ flat.
   they call `CoAArena:NewModule(name)`, declare an optional `OnEnable`, and
   add event-named methods (`PLAYER_ENTERING_WORLD`, etc.) that the core
   dispatches to.
-- **Load order is explicit in the `.toc`.** Locales → `core.lua` → modules.
-  Add new files to `CoAArena.toc`; there is no autoloader.
+- **Load order is explicit in the `.toc`.** Locales → `core.lua` → `shared/`
+  → feature domains (data/`store` before the modules that use it). Add new
+  files to `CoAArena.toc`; there is no autoloader.
+- **Cross-file wiring.** Data/helpers hang off `ns` (`ns.util`,
+  `ns.arena_log.store`); event modules find siblings via
+  `CoAArena:GetModule(name)` at runtime.
 - **Code style** (3-space indent, `snake_case` files/locals, PascalCase
   methods) is in `.claude/rules/lua-style.md`.
 - **SavedVariables.** `CoAArenaDB` (account) and `CoAArenaCharDB` (per
