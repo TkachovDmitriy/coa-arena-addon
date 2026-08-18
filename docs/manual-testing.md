@@ -11,7 +11,8 @@ API has the same name.
 3. Run `/tdlens debug`; expect `state=idle, matches=0, latest=#0` on a clean
    character database.
 4. Verify the arena icon appears at the bottom-left of the minimap. Left-click it
-   to open recent matches and right-click it to open the diagnostic log.
+   to open recent matches and right-click it to open the diagnostic log. Drag it
+   around the minimap, run `/reload`, and verify that its position is restored.
 
 When testing a newly added Lua file, fully exit and restart the CoA client.
 `/reload` can reload the addon's existing UI while the new file still fails to

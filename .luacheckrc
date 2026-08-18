@@ -19,6 +19,7 @@ globals = {
    "GetBattlefieldScore",
    "GetBattlefieldTeamInfo",
    "GetBattlefieldWinner",
+   "GetCursorPosition",
    "GetNumBattlefieldScores",
    "GetRealZoneText",
    "GameTooltip",

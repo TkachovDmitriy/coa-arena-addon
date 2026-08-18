@@ -13,7 +13,7 @@ later phase.
 - Reports capture state with `/tdlens debug`
 - Keeps a copyable runtime diagnostic log in `/tdlens log`
 - Provides one-click status, BG controls, and arena/BG exports in that log
-- Opens history with a minimap button (right-click opens diagnostics)
+- Opens history with a draggable minimap button (right-click opens diagnostics)
 - Supports a non-persistent BG capture test with `/tdlens testbg on`
 
 The legacy `/coaarena` command remains available as an alias.
