@@ -22,14 +22,35 @@ end
 
 function Reporting:PrintDebugState()
    local session = TDArenaLens:GetModule("ArenaSession")
+   local settings = TDArenaLens:GetModule("Settings")
    local latest = store.GetLatestMatch()
    util.Print(string.format(
       L["DEBUG_STATE"],
       session and session:GetDebugState() or "missing",
+      settings and settings:IsDebugEnabled() and L["ENABLED"] or L["DISABLED"],
       #store.GetMatches(),
       latest and latest.id or 0,
-      session and session:GetTestOpponentCount() or 0
+      session and session:GetTestOpponentCount() or 0,
+      self:GetFailedModuleCount()
    ))
+end
+
+function Reporting:GetFailedModuleCount()
+   local count = 0
+   for _, module in ipairs(TDArenaLens.module_order) do
+      if module.failed then count = count + 1 end
+   end
+   return count
+end
+
+function Reporting:SetDebugEnabled(enabled)
+   TDArenaLens:GetModule("Settings"):SetDebugEnabled(enabled)
+   self:PrintDebugState()
+end
+
+function Reporting:ToggleDebugEnabled()
+   local settings = TDArenaLens:GetModule("Settings")
+   self:SetDebugEnabled(not settings:IsDebugEnabled())
 end
 
 function Reporting:PrintBgTestStatus()

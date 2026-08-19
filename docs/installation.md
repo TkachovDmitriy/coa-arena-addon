@@ -28,6 +28,8 @@ Run these commands in the in-game chat:
 ```text
 /tdlens about
 /tdlens debug
+/tdlens debug on
+/tdlens debug off
 ```
 
 The first command should display the addon name, author, and installed version.

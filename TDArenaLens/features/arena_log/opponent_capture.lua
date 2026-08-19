@@ -151,7 +151,7 @@ function OpponentCapture:COMBAT_LOG_EVENT_UNFILTERED(
          }, ":")
          if not self.traced_event_keys[trace_key] then
             self.traced_event_keys[trace_key] = true
-            util.Log(combat_event_line(
+            util.DebugLog(combat_event_line(
                event_name, source_name, dest_name, spell_id, spell_name
             ))
          end

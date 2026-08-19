@@ -29,8 +29,12 @@ function action_bar.Create(parent)
    buttons.status = create_button(parent, nil, L["STATUS"], 76, function()
       reporting:PrintDebugState()
    end)
+   buttons.debug_toggle = create_button(
+      parent, buttons.status, L["DEBUG_TOGGLE"], 76,
+      function() reporting:ToggleDebugEnabled() end
+   )
    buttons.arena_export = create_button(
-      parent, buttons.status, L["ARENA_EXPORT_BUTTON"], 104,
+      parent, buttons.debug_toggle, L["ARENA_EXPORT_BUTTON"], 104,
       function() reporting:ExportLatestArena() end
    )
    buttons.bg_start = create_button(

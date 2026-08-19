@@ -13,6 +13,7 @@ locales\en_us.lua
 core.lua
 
 shared\util.lua
+shared\settings.lua
 
 # feature: arena_log
 features\arena_log\store.lua

@@ -18,6 +18,35 @@ TDArenaLens.modules = TDArenaLens.modules or {}
 TDArenaLens.module_order = TDArenaLens.module_order or {}
 TDArenaLens.event_modules = TDArenaLens.event_modules or {}
 
+local function clean_error_message(message)
+   return string.gsub(string.gsub(tostring(message), "[\r\n]+", " "), "|", "/")
+end
+
+-- Quarantine a module after an unhandled callback error. Continuing to invoke
+-- a partially failed capture/persistence module risks corrupting session state;
+-- unrelated modules may still receive their events normally.
+function TDArenaLens:CallModule(module, context, handler, ...)
+   if module.failed then return false end
+
+   local ok, message = pcall(handler, module, ...)
+   if ok then return true end
+
+   module.failed = true
+   module.failure_context = context
+   module.failure_message = clean_error_message(message)
+
+   local report = string.format(
+      "ERROR||module=%s||context=%s||message=%s",
+      tostring(module.name), tostring(context), module.failure_message
+   )
+   if ns.util and ns.util.Print then
+      ns.util.Print(report)
+   elseif DEFAULT_CHAT_FRAME then
+      DEFAULT_CHAT_FRAME:AddMessage("TD ArenaLens: " .. report)
+   end
+   return false
+end
+
 -- Module registry -----------------------------------------------------------
 -- A "module" is just a table with optional `OnEnable` and event-named methods
 -- (e.g. `PLAYER_ENTERING_WORLD`). The core fans events out to them.
@@ -81,7 +110,9 @@ frame:SetScript("OnEvent", function(_, event, ...)
 
    if event == "PLAYER_LOGIN" then
       for _, module in ipairs(TDArenaLens.module_order) do
-         if module.OnEnable then module:OnEnable() end
+         if module.OnEnable then
+            TDArenaLens:CallModule(module, "OnEnable", module.OnEnable)
+         end
       end
    end
 
@@ -93,7 +124,7 @@ frame:SetScript("OnEvent", function(_, event, ...)
    for _, module in ipairs(TDArenaLens.module_order) do
       if subscribers[module] then
          local handler = module[event]
-         if handler then handler(module, ...) end
+         if handler then TDArenaLens:CallModule(module, event, handler, ...) end
       end
    end
 end)

@@ -31,6 +31,14 @@ function util.Log(msg)
    append_log(msg)
 end
 
+-- Add verbose diagnostics only when the persistent debug setting is enabled.
+-- Normal user-facing Print messages remain available regardless of this flag.
+function util.DebugLog(msg)
+   local addon = ns.addon
+   local settings = addon and addon:GetModule("Settings")
+   if settings and settings:IsDebugEnabled() then append_log(msg) end
+end
+
 function util.GetLogText()
    return table.concat(log_lines, "\n")
 end
