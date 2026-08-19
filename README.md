@@ -10,8 +10,9 @@ later phase.
 - Captures opponent identity and final scoreboard statistics
 - Stores win/loss and rated-team rating changes per character
 - Shows the ten most recent matches with `/tdlens`
-- Reports capture state with `/tdlens debug`
-- Keeps a copyable runtime diagnostic log in `/tdlens log`
+- Reports capture state with `/tdlens debug` and persists `/tdlens debug on|off`
+- Keeps a copyable runtime diagnostic log in `/tdlens log`; verbose combat
+  traces are controlled by `/tdlens debug on|off`
 - Provides one-click status, BG controls, and arena/BG exports in that log
 - Opens history with a draggable minimap button (right-click opens diagnostics)
 - Supports a non-persistent BG capture test with `/tdlens testbg on`

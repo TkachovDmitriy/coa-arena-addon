@@ -8,8 +8,10 @@ API has the same name.
 
 1. Symlink `TDArenaLens/` into `Interface/AddOns/TDArenaLens`.
 2. Enable Lua errors with `/console scriptErrors 1` and run `/reload`.
-3. Run `/tdlens debug`; expect `state=idle, matches=0, latest=#0` on a clean
-   character database.
+3. Run `/tdlens debug`; expect `state=idle, debug=disabled, matches=0,
+   latest=#0, errors=0` on a clean character database. Run `/tdlens debug on`, then
+   `/reload`, and verify the status still says `debug=enabled`. Turn it off
+   again with `/tdlens debug off` unless detailed diagnostics are needed.
 4. Verify the arena icon appears at the bottom-left of the minimap. Left-click it
    to open recent matches and right-click it to open the diagnostic log. Drag it
    around the minimap, run `/reload`, and verify that its position is restored.
@@ -59,7 +61,8 @@ history or SavedVariables.
 3. Engage a hostile player and expect `state=active(bg-test)`.
    Run `/tdlens debug` and verify `test-opponents` immediately reflects the
    opponents captured so far, before the scoreboard is final.
-   Open `/tdlens log` and verify useful hostile-player casts, interrupts,
+   Enable `/tdlens debug on`, open `/tdlens log`, and verify useful
+   hostile-player casts, interrupts,
    dispels, aura applications, and deaths appear as copyable
    `COMBAT||event=...||source=...||dest=...` lines. Routine damage, healing,
    periodic ticks, and events exclusively between unrelated players must not

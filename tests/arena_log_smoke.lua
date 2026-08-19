@@ -147,6 +147,7 @@ end
 load_addon_file("TDArenaLens/locales/en_us.lua")
 load_addon_file("TDArenaLens/core.lua")
 load_addon_file("TDArenaLens/shared/util.lua")
+load_addon_file("TDArenaLens/shared/settings.lua")
 load_addon_file("TDArenaLens/features/arena_log/store.lua")
 load_addon_file("TDArenaLens/features/arena_log/opponent_capture.lua")
 load_addon_file("TDArenaLens/features/arena_log/arena_session.lua")
@@ -157,14 +158,96 @@ load_addon_file("TDArenaLens/features/diagnostics/log_frame.lua")
 load_addon_file("TDArenaLens/features/commands/slash_commands.lua")
 load_addon_file("TDArenaLens/features/launcher/minimap_button.lua")
 
+local enable_after_failure_count = 0
+local FailingEnable = namespace.addon:NewModule("FailingEnableFixture")
+function FailingEnable:OnEnable()
+   error("startup|failure\nfixture")
+end
+local EnableAfterFailure = namespace.addon:NewModule("EnableAfterFailureFixture")
+function EnableAfterFailure:OnEnable()
+   enable_after_failure_count = enable_after_failure_count + 1
+end
+
+local failing_event_count = 0
+local healthy_event_count = 0
+local FailingEvent = namespace.addon:NewModule("FailingEventFixture")
+function FailingEvent:OnEnable()
+   namespace.addon:RegisterEvent("TEST_MODULE_FAILURE", self)
+end
+function FailingEvent:TEST_MODULE_FAILURE()
+   failing_event_count = failing_event_count + 1
+   error("event failure")
+end
+local HealthyEvent = namespace.addon:NewModule("HealthyEventFixture")
+function HealthyEvent:OnEnable()
+   namespace.addon:RegisterEvent("TEST_MODULE_FAILURE", self)
+end
+function HealthyEvent:TEST_MODULE_FAILURE()
+   healthy_event_count = healthy_event_count + 1
+end
+
 event_script(event_frame, "ADDON_LOADED", "TDArenaLens")
 event_script(event_frame, "PLAYER_LOGIN")
+
+assert(FailingEnable.failed)
+assert(enable_after_failure_count == 1)
+assert(string.find(namespace.util.GetLogText(), "ERROR||module=FailingEnableFixture", 1, true))
+assert(not string.find(namespace.util.GetLogText(), "startup|failure", 1, true))
+event_script(event_frame, "TEST_MODULE_FAILURE")
+assert(failing_event_count == 1)
+assert(healthy_event_count == 1)
+assert(FailingEvent.failed)
+event_script(event_frame, "TEST_MODULE_FAILURE")
+assert(failing_event_count == 1)
+assert(healthy_event_count == 2)
 
 assert(SLASH_TDARENALENS1 == "/tdlens")
 assert(SLASH_TDARENALENS2 == "/coaarena")
 assert(type(SlashCmdList.TDARENALENS) == "function")
 
 local session = namespace.addon:GetModule("ArenaSession")
+local settings = namespace.addon:GetModule("Settings")
+assert(settings)
+assert(not settings:IsDebugEnabled())
+assert(TDArenaLensDB.settings.schema == 1)
+assert(TDArenaLensDB.settings.debug_enabled == false)
+local persisted_account_db = TDArenaLensDB
+local malformed_account_db = {
+   settings = { schema = 1, debug_enabled = "not-a-boolean" },
+}
+settings:Init(malformed_account_db)
+assert(malformed_account_db.settings.debug_enabled == false)
+settings:Init(persisted_account_db)
+local initial_log_count = namespace.util.GetLogLineCount()
+namespace.util.DebugLog("hidden-debug-line")
+assert(namespace.util.GetLogLineCount() == initial_log_count)
+settings:SetDebugEnabled(true)
+namespace.util.DebugLog("visible-debug-line")
+assert(string.find(namespace.util.GetLogText(), "visible-debug-line", 1, true))
+local future_settings_ok = pcall(function()
+   settings:Init({ settings = { schema = 2 } })
+end)
+assert(not future_settings_ok)
+settings:Init(persisted_account_db)
+
+local persisted_character_db = TDArenaLensCharDB
+local repaired_store = namespace.arena_log.store.Init({
+   arena_log = {
+      schema = 1,
+      matches = {
+         { id = 7, started_at = 1, opponents = {} },
+         { id = 99, opponents = {} },
+      },
+      next_id = "invalid",
+   },
+})
+assert(#repaired_store.matches == 1)
+assert(repaired_store.next_id == 8)
+local future_store_ok = pcall(function()
+   namespace.arena_log.store.Init({ arena_log = { schema = 2 } })
+end)
+assert(not future_store_ok)
+namespace.arena_log.store.Init(persisted_character_db)
 assert(session:GetDebugState() == "idle")
 assert(namespace.addon:GetModule("DiagnosticLogFrame"))
 assert(namespace.addon:GetModule("DiagnosticReporting"))
@@ -368,8 +451,24 @@ assert(string.find(namespace.util.GetLogText(), "BGTEST||complete=1||result=win"
 assert(#namespace.arena_log.store.GetMatches() == 2)
 
 local actions = namespace.addon:GetModule("DiagnosticLogFrame").frame.actions
+settings:SetDebugEnabled(false)
 actions.status.scripts.OnClick(actions.status)
 assert(string.find(messages[#messages], "matches=2", 1, true))
+actions.debug_toggle.scripts.OnClick(actions.debug_toggle)
+assert(settings:IsDebugEnabled())
+assert(TDArenaLensDB.settings.debug_enabled)
+assert(string.find(messages[#messages], "debug=enabled", 1, true))
+settings:Init(TDArenaLensDB)
+assert(settings:IsDebugEnabled())
+SlashCmdList.TDARENALENS("debug off")
+assert(not settings:IsDebugEnabled())
+assert(TDArenaLensDB.settings.debug_enabled == false)
+assert(string.find(messages[#messages], "debug=disabled", 1, true))
+SlashCmdList.TDARENALENS("debug on")
+assert(settings:IsDebugEnabled())
+SlashCmdList.TDARENALENS("debug unexpected")
+assert(settings:IsDebugEnabled())
+assert(string.find(messages[#messages], "debug=enabled", 1, true))
 actions.arena_export.scripts.OnClick(actions.arena_export)
 assert(string.find(messages[#messages], "ARENA||id=2", 1, true))
 actions.bg_export.scripts.OnClick(actions.bg_export)

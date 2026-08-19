@@ -63,6 +63,10 @@ function ArenaSession:OnSessionStart(session_kind)
    self.zone = GetRealZoneText()
    self.is_rated = is_rated and true or false
    util.Print(is_test and L["BG_TEST_STARTED"] or L["ARENA_ENTERED"])
+   util.DebugLog(string.format(
+      "SESSION||event=start||kind=%s||rated=%s||zone=%s",
+      tostring(session_kind), tostring(self.is_rated), tostring(self.zone)
+   ))
    local capture = TDArenaLens:GetModule("OpponentCapture")
    if capture then capture:StartCapture() end
 end
@@ -82,6 +86,10 @@ function ArenaSession:OnSessionEnd()
    end
 
    local was_test = self.session_kind == "bg_test"
+   util.DebugLog(string.format(
+      "SESSION||event=end||kind=%s||phase=%s||opponents=%d",
+      tostring(self.session_kind), tostring(self.phase), #(opponents or {})
+   ))
    self.phase = "idle"
    self.session_kind = nil
    util.Print(was_test and L["BG_TEST_STOPPED"] or L["ARENA_LEFT"])
@@ -91,6 +99,7 @@ function ArenaSession:OnCombatObserved()
    if self.phase ~= "preparing" then return end
    self.phase = "active"
    self.first_combat_at = time()
+   util.DebugLog("SESSION||event=combat-observed")
 end
 
 -- CoA emits combat-log traffic for hostile players while the battleground
@@ -183,6 +192,10 @@ function ArenaSession:UPDATE_BATTLEFIELD_SCORE()
       store.AppendMatch(match)
       util.Print(string.format(L["MATCH_SAVED"], L[string.upper(match.result)]))
    end
+   util.DebugLog(string.format(
+      "SESSION||event=complete||kind=%s||result=%s||opponents=%d",
+      tostring(self.session_kind), tostring(match.result), #match.opponents
+   ))
    self.phase = "complete"
 end
 
