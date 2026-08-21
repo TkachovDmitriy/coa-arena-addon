@@ -11,6 +11,10 @@ local target_exists = true
 local inspect_allowed = true
 local notify_inspect_count = 0
 local create_frame_count = 0
+local inspected_items = {
+   [1] = "|cff0070dd|Hitem:12345:0:0:0:0:0:0:0|h[Test Helm]|h|r",
+   [16] = "|cffa335ee|Hitem:67890:0:0:0:0:0:0:0|h[Test Sword]|h|r",
+}
 
 local event_frame = {}
 
@@ -124,6 +128,23 @@ function NotifyInspect(unit)
    notify_inspect_count = notify_inspect_count + 1
 end
 
+function UnitAverageItemLevel(unit)
+   assert(unit == "target")
+   return 245.25
+end
+
+function GetInventoryItemLink(unit, slot)
+   assert(unit == "target")
+   return inspected_items[slot]
+end
+
+function GetItemInfo(link)
+   if string.find(link, "12345", 1, true) then
+      return "Test Helm", link, 3, 232
+   end
+   return "Test Sword", link, 4, 258
+end
+
 local scores = {
    { "Player", 1, 0, 0, 0, 0, 0, "Human", "Warrior", "WARRIOR", 1000, 50 },
    { "Enemy", 2, 0, 1, 0, 1, 0, "Orc", "Shaman", "SHAMAN", 800, 200 },
@@ -224,6 +245,7 @@ assert(type(SlashCmdList.TDARENALENS) == "function")
 
 local session = namespace.addon:GetModule("ArenaSession")
 local settings = namespace.addon:GetModule("Settings")
+local inspect_probe = namespace.addon:GetModule("InspectProbe")
 assert(settings)
 assert(not settings:IsDebugEnabled())
 assert(TDArenaLensDB.settings.schema == 1)
@@ -380,14 +402,27 @@ assert(registered_events.COMBAT_LOG_EVENT_UNFILTERED)
 SlashCmdList.TDARENALENS("inspect")
 assert(notify_inspect_count == 1)
 assert(string.find(messages[#messages], "notify=requested", 1, true))
+assert(string.find(messages[#messages], "INSPECT_TALENT_READY", 1, true))
+event_script(event_frame, "INSPECT_TALENT_READY")
+assert(string.find(messages[#messages], "average-item-level=245.2", 1, true))
+assert(string.find(namespace.util.GetLogText(), "item-id=12345", 1, true))
+assert(string.find(namespace.util.GetLogText(), "item-id=67890", 1, true))
+
+SlashCmdList.TDARENALENS("inspect")
+assert(notify_inspect_count == 2)
 event_script(event_frame, "INSPECT_READY", "unrelated-guid")
 assert(string.find(namespace.util.GetLogText(), "ready=other-guid", 1, true))
 event_script(event_frame, "INSPECT_READY", target_guid)
-assert(string.find(messages[#messages], "ready=yes", 1, true))
+assert(string.find(namespace.util.GetLogText(), "event=INSPECT_READY", 1, true))
+
+SlashCmdList.TDARENALENS("inspect")
+assert(notify_inspect_count == 3)
+inspect_probe.timeout_frame.scripts.OnUpdate(inspect_probe.timeout_frame, 12)
+assert(string.find(messages[#messages], "result=timeout", 1, true))
 
 inspect_allowed = false
 SlashCmdList.TDARENALENS("inspect")
-assert(notify_inspect_count == 1)
+assert(notify_inspect_count == 3)
 assert(string.find(messages[#messages], "can-inspect=no", 1, true))
 target_exists = false
 SlashCmdList.TDARENALENS("inspect")
