@@ -16,6 +16,8 @@ later phase.
 - Provides one-click status, BG controls, and arena/BG exports in that log
 - Opens history with a draggable minimap button (right-click opens diagnostics)
 - Supports a non-persistent BG capture test with `/tdlens testbg on`
+- Tests hostile-target Inspect support with `/tdlens inspect`; the diagnostic
+  output records `CanInspect`, the request, and whether `INSPECT_READY` arrives
 
 The legacy `/coaarena` command remains available as an alias.
 

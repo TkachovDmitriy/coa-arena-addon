@@ -25,13 +25,30 @@ therefore does not prove every file listed in the `.toc` was loaded. Check
 ## Match capture
 
 1. Enter an arena. Expect `Arena entered — preparing match capture.`
-2. Run `/tdlens debug` before combat. Expect `state=preparing`.
-3. Engage an opponent and run the command again. Expect `state=active`.
-4. Finish the match. Before leaving, expect `Match saved: Win.` or
+2. Before combat, check `arena1` through `arena5` as opponents become known.
+   Record when CoA first exposes each unit and whether name, class, current and
+   maximum health, and alive/dead state are available. If a rogue or druid is
+   stealthed, record whether identity/class remain known and whether health is
+   unavailable or stays at its last known value. Arena unit data is independent
+   from equipment inspection and must not be treated as proof that gear or
+   resilience can be read.
+3. Run `/tdlens debug` before combat. Expect `state=preparing`.
+4. Engage an opponent and run the command again. Expect `state=active`.
+5. On a visible hostile target, run `/tdlens inspect`. Expect an
+   `INSPECT||target=...||can-inspect=yes|no` line. If it says `yes`, also expect
+   `notify=requested` followed by `ready=yes`; copy the lines from `/tdlens log`.
+   This tests `CanInspect("target")`, `NotifyInspect("target")`, and
+   `INSPECT_READY`. If all three work, future best-effort equipment capture can
+   estimate resilience from items, gems, and enchants. If they do not, do not
+   infer resilience from damage taken: armor, talents, buffs, absorbs,
+   defensive abilities, and the attacker's level make that estimate
+   unreliable. The arena scoreboard's damage/healing statistics do not provide
+   resilience either.
+6. Finish the match. Before leaving, expect `Match saved: Win.` or
    `Match saved: Loss.`
-5. Run `/tdlens` and verify the newest row shows the result, rating change
+7. Run `/tdlens` and verify the newest row shows the result, rating change
    when rated, and all scoreboard opponents.
-6. Leave the arena and run `/reload`. Open `/tdlens` again and verify the
+8. Leave the arena and run `/reload`. Open `/tdlens` again and verify the
    record survived through `SavedVariables`.
 
 ## Failure paths
@@ -54,6 +71,10 @@ combat-log and scoreboard capture pipeline but never writes the result to arena
 history or SavedVariables.
 
 1. Enter a battleground and run `/tdlens testbg on`.
+   Target a visible hostile player and run `/tdlens inspect`; record the
+   `can-inspect`, `notify`, and `ready` diagnostic lines. A `can-inspect=no`
+   result establishes that the client refuses the request; `yes` is only fully
+   confirmed when the matching `INSPECT_READY` line arrives.
 2. Expect `BG test capture started` and `state=preparing(bg-test)` from
    `/tdlens debug`.
    During the pre-match countdown, hostile buffs must not create `COMBAT`

@@ -7,6 +7,9 @@ local instance_type = "none"
 local winner_team
 local battlefield_runtime = 90000
 local target_guid = "enemy-guid"
+local target_exists = true
+local inspect_allowed = true
+local notify_inspect_count = 0
 local create_frame_count = 0
 
 local event_frame = {}
@@ -108,6 +111,19 @@ function UnitGUID(unit)
    if unit == "target" then return target_guid end
 end
 
+function UnitExists(unit)
+   return unit == "target" and target_exists
+end
+
+function CanInspect(unit)
+   return unit == "target" and inspect_allowed
+end
+
+function NotifyInspect(unit)
+   assert(unit == "target")
+   notify_inspect_count = notify_inspect_count + 1
+end
+
 local scores = {
    { "Player", 1, 0, 0, 0, 0, 0, "Human", "Warrior", "WARRIOR", 1000, 50 },
    { "Enemy", 2, 0, 1, 0, 1, 0, "Orc", "Shaman", "SHAMAN", 800, 200 },
@@ -153,6 +169,7 @@ load_addon_file("TDArenaLens/features/arena_log/opponent_capture.lua")
 load_addon_file("TDArenaLens/features/arena_log/arena_session.lua")
 load_addon_file("TDArenaLens/features/arena_log/history_frame.lua")
 load_addon_file("TDArenaLens/features/diagnostics/reporting.lua")
+load_addon_file("TDArenaLens/features/diagnostics/inspect_probe.lua")
 load_addon_file("TDArenaLens/features/diagnostics/action_bar.lua")
 load_addon_file("TDArenaLens/features/diagnostics/log_frame.lua")
 load_addon_file("TDArenaLens/features/commands/slash_commands.lua")
@@ -251,6 +268,7 @@ namespace.arena_log.store.Init(persisted_character_db)
 assert(session:GetDebugState() == "idle")
 assert(namespace.addon:GetModule("DiagnosticLogFrame"))
 assert(namespace.addon:GetModule("DiagnosticReporting"))
+assert(namespace.addon:GetModule("InspectProbe"))
 assert(namespace.addon:GetModule("SlashCommands"))
 local minimap_button = namespace.addon:GetModule("MinimapButton").button
 assert(minimap_button)
@@ -358,6 +376,24 @@ assert(session:GetDebugState() == "idle")
 SlashCmdList.TDARENALENS("testbg on")
 assert(session:GetDebugState() == "preparing(bg-test)")
 assert(registered_events.COMBAT_LOG_EVENT_UNFILTERED)
+
+SlashCmdList.TDARENALENS("inspect")
+assert(notify_inspect_count == 1)
+assert(string.find(messages[#messages], "notify=requested", 1, true))
+event_script(event_frame, "INSPECT_READY", "unrelated-guid")
+assert(string.find(namespace.util.GetLogText(), "ready=other-guid", 1, true))
+event_script(event_frame, "INSPECT_READY", target_guid)
+assert(string.find(messages[#messages], "ready=yes", 1, true))
+
+inspect_allowed = false
+SlashCmdList.TDARENALENS("inspect")
+assert(notify_inspect_count == 1)
+assert(string.find(messages[#messages], "can-inspect=no", 1, true))
+target_exists = false
+SlashCmdList.TDARENALENS("inspect")
+assert(string.find(messages[#messages], "result=no-target", 1, true))
+target_exists = true
+inspect_allowed = true
 
 battlefield_runtime = 0
 event_script(

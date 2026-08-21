@@ -8,6 +8,7 @@ ignore = {
 }
 globals = {
    "bit",
+   "CanInspect",
    "ChatFontNormal",
    "COMBATLOG_OBJECT_REACTION_HOSTILE",
    "COMBATLOG_OBJECT_TYPE_PLAYER",
@@ -26,6 +27,7 @@ globals = {
    "IsActiveBattlefieldArena",
    "IsInInstance",
    "Minimap",
+   "NotifyInspect",
    "SlashCmdList",
    "SLASH_TDARENALENS1",
    "SLASH_TDARENALENS2",
@@ -34,5 +36,6 @@ globals = {
    "time",
    "UIParent",
    "UnitGUID",
+   "UnitExists",
    "UnitName",
 }
