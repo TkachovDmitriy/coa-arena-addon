@@ -2,7 +2,7 @@
 ## Title: TD ArenaLens
 ## Notes: Arena companion — logs matches, opponents and cooldowns.
 ## Author: TkachovDmitriy
-## Version: 0.1.0-alpha.1
+## Version: 0.1.0-alpha.2
 ## SavedVariables: TDArenaLensDB
 ## SavedVariablesPerCharacter: TDArenaLensCharDB
 
