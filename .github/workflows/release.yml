@@ -35,9 +35,10 @@ jobs:
          - name: Publish GitHub pre-release
            env:
               GH_TOKEN: ${{ github.token }}
-           run: >-
-              gh release create "${GITHUB_REF_NAME}"
-              dist/TDArenaLens-*.zip
-              --prerelease
-              --title "TD ArenaLens ${GITHUB_REF_NAME}"
-              --notes-file docs/release-notes-0.1.0-alpha.1.md
+           run: |
+              addon_version="${GITHUB_REF_NAME#v}"
+              gh release create "${GITHUB_REF_NAME}" \
+                 dist/TDArenaLens-*.zip \
+                 --prerelease \
+                 --title "TD ArenaLens ${GITHUB_REF_NAME}" \
+                 --notes-file "docs/release-notes-$addon_version.md"
