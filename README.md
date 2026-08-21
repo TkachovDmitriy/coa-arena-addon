@@ -42,6 +42,9 @@ and fully restart the game. The resulting addon path must be
 See the [installation and test guide](docs/installation.md) for step-by-step
 instructions, verification, updating, and removal.
 
+For a short walkthrough that can be sent directly to a tester, see the
+[tester guide](docs/tester-guide.md).
+
 ## Development
 
 The addon targets WoW **3.3.5 (WotLK)** and is written in pure Lua — no build
