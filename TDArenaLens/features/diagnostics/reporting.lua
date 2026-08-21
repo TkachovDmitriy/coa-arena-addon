@@ -8,13 +8,24 @@ local store = ns.arena_log.store
 
 local Reporting = TDArenaLens:NewModule("DiagnosticReporting")
 
+local function export_field(value)
+   value = tostring(value or "?")
+   value = string.gsub(value, "[\r\n]+", " ")
+   return string.gsub(value, "[|,]", "/")
+end
+
 local function opponent_list(match)
    local opponents = {}
    for _, opponent in ipairs(match.opponents or {}) do
       table.insert(opponents, string.format(
-         "%s:%s",
-         opponent.name or L["UNKNOWN"],
-         opponent.class_token or "?"
+         "%s:%s:spec=%s:rating=%s:rating-change=%s:mmr=%s:mmr-change=%s",
+         export_field(opponent.name or L["UNKNOWN"]),
+         export_field(opponent.class_token),
+         export_field(opponent.talent_spec),
+         export_field(opponent.pvp_rating),
+         export_field(opponent.rating_change),
+         export_field(opponent.pre_match_mmr),
+         export_field(opponent.mmr_change)
       ))
    end
    return table.concat(opponents, ",")

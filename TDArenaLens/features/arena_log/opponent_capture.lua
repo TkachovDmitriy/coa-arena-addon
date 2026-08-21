@@ -168,7 +168,8 @@ function OpponentCapture:CaptureScoreboard(player_team)
 
    for index = 1, GetNumBattlefieldScores() do
       local name, killing_blows, _, deaths, _, team, _, race, class,
-         class_token, damage_done, healing_done = GetBattlefieldScore(index)
+         class_token, damage_done, healing_done, pvp_rating, rating_change,
+         pre_match_mmr, mmr_change, talent_spec = GetBattlefieldScore(index)
       if team ~= nil and team ~= player_team then
          self:AddOpponent(nil, name, {
             race = race,
@@ -178,6 +179,11 @@ function OpponentCapture:CaptureScoreboard(player_team)
             deaths = deaths,
             damage_done = damage_done,
             healing_done = healing_done,
+            pvp_rating = pvp_rating,
+            rating_change = rating_change,
+            pre_match_mmr = pre_match_mmr,
+            mmr_change = mmr_change,
+            talent_spec = talent_spec,
             team = team,
          })
       end

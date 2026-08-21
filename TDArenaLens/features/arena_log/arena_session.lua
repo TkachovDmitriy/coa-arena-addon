@@ -114,7 +114,8 @@ function ArenaSession:GetPlayerScore()
    local player_name = base_name(UnitName("player"))
    for index = 1, GetNumBattlefieldScores() do
       local name, killing_blows, _, deaths, _, team, _, race, class,
-         class_token, damage_done, healing_done = GetBattlefieldScore(index)
+         class_token, damage_done, healing_done, pvp_rating, rating_change,
+         pre_match_mmr, mmr_change, talent_spec = GetBattlefieldScore(index)
       if base_name(name) == player_name then
          return team, {
             name = name,
@@ -125,6 +126,11 @@ function ArenaSession:GetPlayerScore()
             deaths = deaths,
             damage_done = damage_done,
             healing_done = healing_done,
+            pvp_rating = pvp_rating,
+            rating_change = rating_change,
+            pre_match_mmr = pre_match_mmr,
+            mmr_change = mmr_change,
+            talent_spec = talent_spec,
          }
       end
    end
