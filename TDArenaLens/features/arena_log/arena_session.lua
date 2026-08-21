@@ -13,6 +13,12 @@ local function base_name(name)
    return name and string.match(name, "^[^-]+")
 end
 
+local function log_field(value)
+   value = tostring(value == nil and "?" or value)
+   value = string.gsub(value, "[\r\n]+", " ")
+   return string.gsub(value, "|", "/")
+end
+
 function ArenaSession:OnEnable()
    store.Init(TDArenaLens.charDB)
    TDArenaLens:RegisterEvent("PLAYER_ENTERING_WORLD", self)
@@ -62,6 +68,7 @@ function ArenaSession:OnSessionStart(session_kind)
    self.first_combat_at = nil
    self.zone = GetRealZoneText()
    self.is_rated = is_rated and true or false
+   self.rating_probe_signatures = {}
    util.Print(is_test and L["BG_TEST_STARTED"] or L["ARENA_ENTERED"])
    util.DebugLog(string.format(
       "SESSION||event=start||kind=%s||rated=%s||zone=%s",
@@ -69,6 +76,7 @@ function ArenaSession:OnSessionStart(session_kind)
    ))
    local capture = TDArenaLens:GetModule("OpponentCapture")
    if capture then capture:StartCapture() end
+   self:LogRatingProbe("start")
 end
 
 function ArenaSession:OnSessionEnd()
@@ -100,6 +108,40 @@ function ArenaSession:OnCombatObserved()
    self.phase = "active"
    self.first_combat_at = time()
    util.DebugLog("SESSION||event=combat-observed")
+   self:LogRatingProbe("combat")
+end
+
+-- CoA may expose arena-team rating data at different times than the stock
+-- 3.3.5 client. Record the raw values at a few lifecycle points so a live
+-- rated-arena test can establish whether a pre-result forecast is possible.
+function ArenaSession:LogRatingProbe(stage)
+   if self.session_kind ~= "arena" or not self.is_rated then return end
+
+   local winner = GetBattlefieldWinner()
+   local team_values = {}
+   for team = 0, 1 do
+      local name, rating_before, rating_after, matchmaking_rating, player_count =
+         GetBattlefieldTeamInfo(team)
+      table.insert(team_values, string.format(
+         "team%d-name=%s||team%d-old=%s||team%d-new=%s||team%d-mmr=%s||team%d-players=%s",
+         team, log_field(name), team, log_field(rating_before),
+         team, log_field(rating_after), team, log_field(matchmaking_rating),
+         team, log_field(player_count)
+      ))
+   end
+
+   local signature = string.format(
+      "winner=%s||scores=%s||%s",
+      log_field(winner), log_field(GetNumBattlefieldScores()),
+      table.concat(team_values, "||")
+   )
+   self.rating_probe_signatures = self.rating_probe_signatures or {}
+   if self.rating_probe_signatures[stage] == signature then return end
+   self.rating_probe_signatures[stage] = signature
+   util.Log(string.format(
+      "ARENA_RATING_PROBE||stage=%s||%s",
+      log_field(stage), signature
+   ))
 end
 
 -- CoA emits combat-log traffic for hostile players while the battleground
@@ -184,6 +226,7 @@ function ArenaSession:UPDATE_BATTLEFIELD_SCORE()
    if self.phase == "idle" or self.phase == "complete" then return end
 
    local winner_team = GetBattlefieldWinner()
+   self:LogRatingProbe(winner_team == nil and "score-pending" or "final")
    if winner_team == nil then return end
 
    local player_team, player = self:GetPlayerScore()
