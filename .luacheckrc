@@ -21,6 +21,8 @@ globals = {
    "GetBattlefieldTeamInfo",
    "GetBattlefieldWinner",
    "GetCursorPosition",
+   "GetInventoryItemLink",
+   "GetItemInfo",
    "GetNumBattlefieldScores",
    "GetRealZoneText",
    "GameTooltip",
@@ -38,4 +40,5 @@ globals = {
    "UnitGUID",
    "UnitExists",
    "UnitName",
+   "UnitAverageItemLevel",
 }
