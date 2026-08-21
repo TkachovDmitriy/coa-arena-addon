@@ -35,7 +35,14 @@ Scope:
 - Arena session detection — reliably detect entering/leaving an arena
   match (zone/instance check) so logging doesn't run outside arenas.
 - Opponent capture:
-  - Identity via `COMBAT_LOG_EVENT_UNFILTERED` (who's in the match).
+  - Prefer arena unit IDs (`arena1` through `arena5`) for early opponent
+    identity and unit-frame data when CoA exposes them. These units can provide
+    name, class/class icon, current and maximum health, and alive/dead state at
+    match start or once the client first knows the opponent. A stealthed or
+    otherwise unavailable opponent may retain previously known identity/class
+    while live health becomes unavailable or remains at its last known value.
+  - Fall back to `COMBAT_LOG_EVENT_UNFILTERED` for opponents not discovered
+    through arena unit IDs.
   - Gear/talents via `NotifyInspect` / `INSPECT_READY` — best-effort, since
     the client only returns inspect data for units actually inspected in
     time, not guaranteed for every opponent every match.
@@ -98,6 +105,12 @@ sharing/comparison, not just personal in-game history:
   mid-session loses that session's unsaved matches.
 - Inspect API can't guarantee gear/talent capture for every opponent within
   an arena match's time window.
+- Availability of `arena1` through `arena5` and the exact timing of their name,
+  class, and health data are server-specific and require a live CoA arena
+  test. Access to these unit IDs does not imply access to equipment or
+  resilience: those still require hostile-unit Inspect support. If Inspect is
+  unavailable, damage/healing, abilities used, and survival time are only
+  indirect signals and cannot produce a reliable gear or resilience estimate.
 - Stock 3.3.5 exposes final arena data on `UPDATE_BATTLEFIELD_SCORE` through
   `GetBattlefieldWinner`, `GetBattlefieldScore`, and
   `GetBattlefieldTeamInfo`. The implementation follows that path, but it still

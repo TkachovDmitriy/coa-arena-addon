@@ -36,6 +36,8 @@ function SlashCommands:Handle(message)
       self:HandleBgTest(command)
    elseif command == "arena export" then
       TDArenaLens:GetModule("DiagnosticReporting"):ExportLatestArena()
+   elseif command == "inspect" then
+      TDArenaLens:GetModule("InspectProbe"):Run()
    elseif command == "debug" or string.match(command, "^debug%s+") then
       local reporting = TDArenaLens:GetModule("DiagnosticReporting")
       local setting = string.match(command, "^debug%s+(%S+)$")
