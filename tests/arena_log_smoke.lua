@@ -146,8 +146,14 @@ function GetItemInfo(link)
 end
 
 local scores = {
-   { "Player", 1, 0, 0, 0, 0, 0, "Human", "Warrior", "WARRIOR", 1000, 50 },
-   { "Enemy", 2, 0, 1, 0, 1, 0, "Orc", "Shaman", "SHAMAN", 800, 200 },
+   {
+      "Player", 1, 0, 0, 0, 0, 0, "Human", "Warrior", "WARRIOR", 1000, 50,
+      1512, 12, 1600, 8, "Gladiator",
+   },
+   {
+      "Enemy", 2, 0, 1, 0, 1, 0, "Orc", "Shaman", "SHAMAN", 800, 200,
+      1478, -12, 1580, -8, "Runic",
+   },
 }
 
 function GetNumBattlefieldScores()
@@ -354,6 +360,13 @@ assert(matches[1].is_complete)
 assert(#matches[1].opponents == 1)
 assert(matches[1].opponents[1].guid == "enemy-guid")
 assert(matches[1].opponents[1].class_token == "SHAMAN")
+assert(matches[1].opponents[1].talent_spec == "Runic")
+assert(matches[1].opponents[1].pvp_rating == 1478)
+assert(matches[1].opponents[1].rating_change == -12)
+assert(matches[1].opponents[1].pre_match_mmr == 1580)
+assert(matches[1].opponents[1].mmr_change == -8)
+assert(matches[1].player.talent_spec == "Gladiator")
+assert(matches[1].player.pvp_rating == 1512)
 
 instance_type = "none"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
@@ -517,7 +530,9 @@ SlashCmdList.TDARENALENS("testbg export")
 assert(string.find(messages[#messages], "BGTEST||complete=1||result=win", 1, true))
 assert(string.find(messages[#messages], "||opponents=2||", 1, true))
 assert(string.find(messages[#messages], "BattlegroundEnemy:?", 1, true))
-assert(string.find(messages[#messages], "Enemy:SHAMAN", 1, true))
+assert(string.find(messages[#messages], "Enemy:SHAMAN:spec=Runic", 1, true))
+assert(string.find(messages[#messages], "rating=1478", 1, true))
+assert(string.find(messages[#messages], "mmr=1580", 1, true))
 assert(string.find(namespace.util.GetLogText(), "BGTEST||complete=1||result=win", 1, true))
 assert(#namespace.arena_log.store.GetMatches() == 2)
 
