@@ -324,6 +324,20 @@ instance_type = "arena"
 event_script(event_frame, "PLAYER_ENTERING_WORLD")
 assert(session:GetDebugState() == "preparing")
 assert(registered_events.COMBAT_LOG_EVENT_UNFILTERED)
+assert(string.find(
+   namespace.util.GetLogText(),
+   "ARENA_RATING_PROBE||stage=start||winner=?||scores=2||team0-name=Our Team||team0-old=1500",
+   1,
+   true
+))
+
+event_script(event_frame, "UPDATE_BATTLEFIELD_SCORE")
+assert(string.find(
+   namespace.util.GetLogText(),
+   "ARENA_RATING_PROBE||stage=score-pending||winner=?",
+   1,
+   true
+))
 
 event_script(
    event_frame,
@@ -342,6 +356,12 @@ event_script(
 assert(session:GetDebugState() == "active")
 assert(string.find(
    namespace.util.GetLogText(),
+   "ARENA_RATING_PROBE||stage=combat||winner=?",
+   1,
+   true
+))
+assert(string.find(
+   namespace.util.GetLogText(),
    "COMBAT||event=SPELL_CAST_SUCCESS||source=Enemy||dest=Player||spell-id=50401||spell=Razorice",
    1,
    true
@@ -351,6 +371,12 @@ winner_team = 0
 event_script(event_frame, "UPDATE_BATTLEFIELD_SCORE")
 assert(session:GetDebugState() == "complete")
 assert(not registered_events.COMBAT_LOG_EVENT_UNFILTERED)
+assert(string.find(
+   namespace.util.GetLogText(),
+   "ARENA_RATING_PROBE||stage=final||winner=0||scores=2",
+   1,
+   true
+))
 
 local matches = namespace.arena_log.store.GetMatches()
 assert(#matches == 1)

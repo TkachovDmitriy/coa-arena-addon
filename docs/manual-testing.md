@@ -33,7 +33,10 @@ therefore does not prove every file listed in the `.toc` was loaded. Check
    from equipment inspection and must not be treated as proof that gear or
    resilience can be read.
 3. Run `/tdlens debug` before combat. Expect `state=preparing`.
+   Open `/tdlens log` and copy the `ARENA_RATING_PROBE||stage=start` line.
 4. Engage an opponent and run the command again. Expect `state=active`.
+   Copy the `stage=combat` line. If the scoreboard updates before the result,
+   also copy `stage=score-pending`; repeated identical updates are suppressed.
 5. On a visible hostile target, run `/tdlens inspect`. Expect an
    `INSPECT||target=...||can-inspect=yes|no` line. If it says `yes`, also expect
    `notify=requested` followed by `ready=yes`; copy the lines from `/tdlens log`.
@@ -46,6 +49,10 @@ therefore does not prove every file listed in the `.toc` was loaded. Check
    resilience either.
 6. Finish the match. Before leaving, expect `Match saved: Win.` or
    `Match saved: Loss.`
+   Copy the `ARENA_RATING_PROBE||stage=final` line. Compare both teams' `old`,
+   `new`, and `mmr` values with the earlier stages. A value of `?` means CoA
+   did not expose that field at that point. These probe lines are emitted only
+   for rated arenas and do not require verbose debug mode.
 7. Run `/tdlens` and verify the newest row shows the result, rating change
    when rated, and all scoreboard opponents.
 8. Leave the arena and run `/reload`. Open `/tdlens` again and verify the
